@@ -1,0 +1,18 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "[%key:components::aria2::config::step::user::title%]",
+                "description": "[%key:components::aria2::config::step::user::description%]",
+                "data": {
+                    "host": "[%key:components::aria2::config::step::user::data::host%]",
+                    "port": "[%key:components::aria2::config::step::user::data::port%]",
+                    "access_token": "[%key:components::aria2::config::step::user::data::access_token%]"
+                }
+            }
+        },
+        "error": {
+            "connexion": "[%key:components::aria2::config::error::connexion%]",
+        }
+    }
+}

@@ -1,0 +1,11 @@
+start_download:
+  name: Start download
+  description: Start to download with aria2
+  fields:
+    url:
+      # Field name as shown in UI
+      name: Url
+      description: Url of the file to download
+      required: true
+      selector:
+        text:

@@ -1,0 +1,18 @@
+{
+    "config": {
+        "title": "Aria2",
+        "step": {
+            "user": {
+                "title": "Aria2 configuration",
+                "data": {
+                    "port": "Port",
+                    "host": "Host",
+                    "access_token": "Access token"
+                }
+            }
+        },
+        "error": {
+            "connexion": "unknown error contacting your aria2 server"
+        }
+    }
+}

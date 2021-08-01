@@ -1,0 +1,7 @@
+{
+    "name": "aria2 integration",
+    "domains": ["downloader"],
+    "homeassistant": "2021.7.4",
+    "iot_class": "local_polling",
+    "render_readme": true
+  }
