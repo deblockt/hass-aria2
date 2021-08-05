@@ -30,7 +30,29 @@ async def async_setup_entry(hass, entry):
         url = call.data.get('url')
         aria2.add(url)
 
+
+    def handle_remove_download(call):
+        """Handle the service call."""
+        gid = call.data.get('gid')
+        download = aria2.get_download(gid)
+        aria2.remove([download])
+
+    def handle_pause_download(call):
+        """Handle the service call."""
+        gid = call.data.get('gid')
+        download = aria2.get_download(gid)
+        aria2.pause([download])
+
+    def handle_resume_download(call):
+        """Handle the service call."""
+        gid = call.data.get('gid')
+        download = aria2.get_download(gid)
+        aria2.resume([download])
+
     hass.services.async_register(DOMAIN, 'start_download', handle_add_download)
+    hass.services.async_register(DOMAIN, 'remove_download', handle_remove_download)
+    hass.services.async_register(DOMAIN, 'pause_download', handle_pause_download)
+    hass.services.async_register(DOMAIN, 'resume_download', handle_resume_download)
 
     hass.http.register_view(DisplayDownloadsView(hass, aria2))
 

@@ -75,7 +75,7 @@ class Aria2Sensor(SensorEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self._state_function(self._coordinator.data)
+        return round(self._state_function(self._coordinator.data), 2)
 
     @property
     def unit_of_measurement(self):

@@ -3,9 +3,41 @@ start_download:
   description: Start to download with aria2
   fields:
     url:
-      # Field name as shown in UI
       name: Url
       description: Url of the file to download
+      required: true
+      selector:
+        text:
+
+pause_download:
+  name: Pause a download
+  description: Pause a download started with aria2
+  fields:
+    gid:
+      name: gid
+      description: the gid of the download
+      required: true
+      selector:
+        text:
+
+remove_download:
+  name: Remove a download
+  description: Remove a download started with aria2
+  fields:
+    gid:
+      name: gid
+      description: the gid of the download
+      required: true
+      selector:
+        text:
+
+resume_download:
+  name: Resume a download
+  description: Resume a download started with aria2
+  fields:
+    gid:
+      name: gid
+      description: the gid of the download
       required: true
       selector:
         text:
