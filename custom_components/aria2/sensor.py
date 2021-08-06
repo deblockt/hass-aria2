@@ -65,7 +65,7 @@ class Aria2Sensor(SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return {self._sensor_name}
+        return self._sensor_name
 
     @property
     def unique_id(self):
