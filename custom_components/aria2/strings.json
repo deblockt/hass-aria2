@@ -12,7 +12,7 @@
             }
         },
         "error": {
-            "connexion": "[%key:components::aria2::config::error::connexion%]",
+            "connexion": "[%key:components::aria2::config::error::connexion%]"
         }
     }
 }
