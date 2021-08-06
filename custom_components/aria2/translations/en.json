@@ -5,14 +5,19 @@
             "user": {
                 "title": "Aria2 configuration",
                 "data": {
-                    "port": "Port",
+                    "port": "Port (optional)",
                     "host": "Host",
-                    "access_token": "Access token"
+                    "access_token": "Access token (optional)"
                 }
             }
         },
         "error": {
-            "connexion": "unknown error contacting your aria2 server"
+            "connexion": "Can not contact your aria2 server, verify the host and the port.",
+            "unknown": "Unknow error occured contacting your aria2 server. check server logs for more details.",
+            "json": "We can contact your server, but it respond with a malformed response. Check that your server configuration is OK. Check the used protocol https (secured connection) or http (unsecured connection)",
+            "aria_unknown": "Aria server respond with an unmanaged error. check server logs for more details.",
+            "aria_unauthorized": "Provided token is rejected by aria server.",
+            "invalid_url": "The provided host/port are invalid. host should look like http://host.com or https://host.com. Port sould be a number."
         }
     }
 }

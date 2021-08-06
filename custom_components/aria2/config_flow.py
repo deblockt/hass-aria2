@@ -1,3 +1,7 @@
+import logging
+import requests
+import json
+
 from homeassistant import config_entries
 from .const import DOMAIN, CONF_PORT
 
@@ -9,11 +13,13 @@ from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
 import aria2p
 import traceback
 
+_LOGGER = logging.getLogger(__name__)
+
 def get_port(host):
-    if host.startswith('http'):
-        return 80
-    else:
+    if host.startswith('https'):
         return 443
+    else:
+        return 80
 
 class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -47,14 +53,29 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_ACCESS_TOKEN: secret
                     }
                 )
-            except:
-                traceback.print_exc()
+            except requests.exceptions.InvalidURL:
+                _LOGGER.exception("connexion error")
+                errors['base'] = 'invalid_url'
+            except requests.exceptions.ConnectionError:
+                _LOGGER.exception("connexion error")
                 errors['base'] = 'connexion'
+            except json.decoder.JSONDecodeError:
+                _LOGGER.exception("json error")
+                errors['base'] = 'json'
+            except aria2p.client.ClientException as e:
+                _LOGGER.exception("aria2 client exception")
+                if str(e) == 'Unauthorized':
+                    errors['base'] = 'aria_unauthorized'
+                else:
+                    errors['base'] = 'aria_unknown'
+            except:
+                _LOGGER.exception("unknow error")
+                errors['base'] = 'unknown'
 
         schema = {
-            vol.Required(CONF_HOST, default = host): str,
-            vol.Optional(CONF_PORT, default = port): str,
-            vol.Optional(CONF_ACCESS_TOKEN, default = secret): str
+            vol.Required(CONF_HOST, default = host or vol.UNDEFINED): str,
+            vol.Optional(CONF_PORT, default = port or vol.UNDEFINED): int,
+            vol.Optional(CONF_ACCESS_TOKEN, default = secret or vol.UNDEFINED): str
         }
 
         return self.async_show_form(

@@ -12,7 +12,11 @@
             }
         },
         "error": {
-            "connexion": "[%key:components::aria2::config::error::connexion%]"
+            "connexion": "[%key:components::aria2::config::error::connexion%]",
+            "unknown": "[%key:components::aria2::config::error::unknown%]",
+            "json": "[%key:components::aria2::config::error::json%]",
+            "aria_unknown": "[%key:components::aria2::config::error::aria_unknown%]",
+            "invalid_url": "[%key:components::aria2::config::error::invalid_url%]"
         }
     }
 }
