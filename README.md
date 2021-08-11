@@ -31,6 +31,6 @@ The following sensor are available:
 
 ## lovelace card
 
-To be able to display the download list you can use the [aria2-card]()
+To be able to display the download list you can use the [aria2-card](https://github.com/deblockt/aria2-card)
 
 ![screenshot](./doc/aria2-card.png)
