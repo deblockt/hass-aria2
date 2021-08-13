@@ -28,8 +28,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     async def async_state_update_data():
         """Fetch aria 2 stats data from API."""
-        async with async_timeout.timeout(10):
-            return await hass.async_add_executor_job(aria2.get_stats)
+        try:
+            async with async_timeout.timeout(3):
+                return await hass.async_add_executor_job(aria2.get_stats)
+        except:
+            _LOGGER.exception('can not refresh aria2 sensor due to exception')
+            return None
 
 
     state_coordinator = DataUpdateCoordinator(
@@ -75,7 +79,10 @@ class Aria2Sensor(SensorEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return round(self._state_function(self._coordinator.data), 2)
+        if self._coordinator.data:
+            return round(self._state_function(self._coordinator.data), 2)
+        else:
+            return None
 
     @property
     def unit_of_measurement(self):
