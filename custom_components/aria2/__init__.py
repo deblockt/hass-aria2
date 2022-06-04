@@ -1,9 +1,13 @@
+import logging
+
 from .const import DOMAIN, CONF_PORT
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
 from homeassistant.components import http
 from homeassistant.core import callback
 
 import aria2p
+
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry):
     """ a aria sensor """
@@ -75,7 +79,8 @@ class DisplayDownloadsView(http.HomeAssistantView):
             'gid': download.gid,
             'status': download.status,
             'total_length': download.total_length,
-            'completed_length': download.completed_length
+            'completed_length': download.completed_length,
+            'download_speed': download.download_speed,
         }
 
     @callback
