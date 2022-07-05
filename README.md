@@ -29,6 +29,13 @@ The following sensor are available:
    - number_of_waiting_download: the total number of download waiting to start or resume
    - number_of_stopped_download: the total number of downloaded file
 
+## event
+
+In case of download start/stop/pause/complete/error an event `download_state_updated` is sent.
+The event data are:
+  - `gid`: the gid of the download
+  - `status`: the status of the event active/paused/stoped/complete/error
+
 ## lovelace card
 
 To be able to display the download list you can use the [aria2-card](https://github.com/deblockt/aria2-card)
