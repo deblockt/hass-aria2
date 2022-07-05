@@ -34,7 +34,6 @@ async def async_setup_entry(hass, entry):
         url = call.data.get('url')
         aria2.add(url)
 
-
     def handle_remove_download(call):
         """Handle the service call."""
         gid = call.data.get('gid')
@@ -59,6 +58,18 @@ async def async_setup_entry(hass, entry):
     hass.services.async_register(DOMAIN, 'resume_download', handle_resume_download)
 
     hass.http.register_view(DisplayDownloadsView(hass, aria2))
+
+    def listen_notifications():
+        aria2.listen_to_notifications(
+            threaded = False,
+            on_download_start = lambda api_client, gid: hass.bus.fire('download_state_updated', {'gid': gid, 'status': 'active'}),
+            on_download_pause = lambda api_client, gid: hass.bus.fire('download_state_updated', {'gid': gid, 'status': 'paused'}),
+            on_download_stop = lambda api_client, gid: hass.bus.fire('download_state_updated', {'gid': gid, 'status': 'stoped'}),
+            on_download_complete = lambda api_client, gid: hass.bus.fire('download_state_updated', {'gid': gid, 'status': 'complete'}),
+            on_download_error = lambda api_client, gid: hass.bus.fire('download_state_updated', {'gid': gid, 'status': 'error'})
+        )
+
+    hass.async_add_executor_job(listen_notifications)
 
     return True
 
