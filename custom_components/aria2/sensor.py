@@ -1,18 +1,12 @@
 """Support for aria2 downloader."""
+import asyncio
 import logging
 
-from datetime import timedelta
 from homeassistant.const import CONF_HOST, DATA_RATE_MEGABYTES_PER_SECOND
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.core import callback
-
-import async_timeout
-
 
 from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
     DataUpdateCoordinator,
-    UpdateFailed,
 )
 
 from .const import DOMAIN
@@ -24,27 +18,22 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the aria2."""
     _LOGGER.debug("Adding aria2 to Home Assistant")
 
-    aria2 = hass.data[DOMAIN][config_entry.entry_id]['aria2_client']
-
-    async def async_state_update_data():
-        """Fetch aria 2 stats data from API."""
-        try:
-            async with async_timeout.timeout(3):
-                return await hass.async_add_executor_job(aria2.get_stats)
-        except:
-            _LOGGER.exception('can not refresh aria2 sensor due to exception')
-            return None
-
+    ws_client = hass.data[DOMAIN][config_entry.entry_id]['ws_client']
 
     state_coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name="sensor",
-        update_method=async_state_update_data,
-        update_interval=timedelta(seconds=30),
+        name="sensor"
     )
+    ws_client.on_global_stat(lambda stat: state_coordinator.async_set_updated_data(stat))
 
-    await state_coordinator.async_config_entry_first_refresh()
+    async def refresh_stats():
+        while True:
+            await ws_client.call_global_stat()
+            await ws_client.refresh_downloads()
+            await asyncio.sleep(3)
+
+    hass.loop.create_task(refresh_stats())
 
     aria_name = "aria " + hass.data[DOMAIN][config_entry.entry_id][CONF_HOST]
     async_add_entities([
