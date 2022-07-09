@@ -1,8 +1,8 @@
 
 import asyncio
 from asyncio import futures
+from enum import Enum
 import logging
-import string
 from typing import Any, Generic, List, TypeVar
 from uuid import uuid4
 
@@ -11,6 +11,31 @@ from aria2p import Download, Stats
 _LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
+
+class DownoladKeys(Enum):
+    GID = 'gid'
+    STATUS = 'status'
+    TOTAL_LENGTH = 'totalLength'
+    COMPLETED_LENGTH = 'completedLength'
+    UPLOADED_LENGTH = 'uploadLength'
+    BIT_FIELD = 'bitfield'
+    DOWNLOAD_SPEED = 'downloadSpeed'
+    UPLOAD_SPEED = 'uploadSpeed'
+    INFO_HASH = 'infoHash'
+    NUM_SEEDERS = 'numSeeders'
+    SEEDER = 'seeder'
+    PIECE_LENGTH = 'pieceLength'
+    NUM_PIECES = 'numPieces'
+    CONNECTIONS = 'connections'
+    ERROR_CODE = 'errorCode'
+    FOLLOWED_BY = 'followedBy'
+    FOLLOWING = 'following'
+    BELONGS_TO = 'belongsTo'
+    DIR = 'dir'
+    FILES = 'files'
+    BITTORENT = 'bittorrent'
+    VERIFIED_LENGTH = 'verifiedLength'
+    VERIFY_INTEGRITY_PENDING = 'verifyIntegrityPending'
 
 class Command(Generic[T]):
 
@@ -86,24 +111,24 @@ class AddUri(Command[str]):
         return json_result
 
 class TellActive(Command[List[Download]]):
-    def __init__(self):
-        super().__init__('aria2.tellActive')
+    def __init__(self, keys: List[DownoladKeys] = []):
+        super().__init__('aria2.tellActive', [[k.value for k in keys]])
 
     def get_result(self, json_result: Any) -> str:
         _LOGGER.debug('get_result for tellActive. ' + str(json_result))
         return [Download(None, d) for d in json_result]
 
 class TellWaiting(Command[List[Download]]):
-    def __init__(self, offset: int = 0, pageSize: int = 1000):
-        super().__init__('aria2.tellWaiting', [offset, pageSize])
+    def __init__(self, offset: int = 0, pageSize: int = 1000, keys: List[DownoladKeys] = []):
+        super().__init__('aria2.tellWaiting', [offset, pageSize, [k.value for k in keys]])
 
     def get_result(self, json_result: Any) -> str:
         _LOGGER.debug('get_result for tellWaiting. ' + str(json_result))
         return [Download(None, d) for d in json_result]
 
 class TellStopped(Command[List[Download]]):
-    def __init__(self, offset: int = 0, pageSize: int = 1000):
-        super().__init__('aria2.tellStopped', [offset, pageSize])
+    def __init__(self, offset: int = 0, pageSize: int = 1000, keys: List[DownoladKeys] = []):
+        super().__init__('aria2.tellStopped', [offset, pageSize, [k.value for k in keys]])
 
     def get_result(self, json_result: Any) -> str:
         _LOGGER.debug('get_result for tellStopped. ' + str(json_result))

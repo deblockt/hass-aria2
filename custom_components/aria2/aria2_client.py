@@ -27,7 +27,9 @@ class WSClient():
         future = command.build_awaitable_future(self.loop)
         self.running_command[str(command.id)] = command
 
-        await ws.send(json.dumps(command.to_json(self.secret)))
+        json_command = command.to_json(self.secret)
+        _LOGGER.debug('send command ' + str(json_command))
+        await ws.send(json.dumps(json_command))
         return await future
 
     async def call_notification_listeners(self, args: list):
