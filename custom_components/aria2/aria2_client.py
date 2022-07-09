@@ -99,14 +99,17 @@ class SharableWebsocket():
             self.is_opening_socket = True
             try:
                 self.ws = await websockets.connect(self.url)
-            except asyncio.exceptions.TimeoutError:
+            except:
+                _LOGGER.debug("fail to create connection. wait 3 seconds and restart process.")
                 self.is_opening_socket = False
+                await asyncio.sleep(3)
                 return await self.get()
 
             self.is_opening_socket = False
             for future in self.waiting_opening_socket_futures:
-                _LOGGER.debug("call websocket waiting future")
-                future.set_result(self.ws)
+                if not future.cancelled():
+                    _LOGGER.debug("call websocket waiting future")
+                    future.set_result(self.ws)
             self.waiting_opening_socket_futures = []
             return self.ws
         else:
