@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 from custom_components.aria2.aria2_client import WSClient
-from custom_components.aria2.aria2_commands import AddUri, MultiCall, Pause, Remove, TellActive, TellStopped, TellWaiting, Unpause
+from custom_components.aria2.aria2_commands import AddUri, DownoladKeys, MultiCall, Pause, Remove, TellActive, TellStopped, TellWaiting, Unpause
 
 from .const import DOMAIN, CONF_PORT
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
@@ -12,6 +12,15 @@ import async_timeout
 
 _LOGGER = logging.getLogger(__name__)
 
+DOWNLOAD_DUMP_KEYS = [
+    DownoladKeys.GID,
+    DownoladKeys.FILES,
+    DownoladKeys.STATUS,
+    DownoladKeys.TOTAL_LENGTH,
+    DownoladKeys.COMPLETED_LENGTH,
+    DownoladKeys.DOWNLOAD_SPEED,
+    DownoladKeys.DIR
+]
 def dump(download):
     return {
         'name': download.name,
@@ -48,10 +57,11 @@ async def async_setup_entry(hass, entry):
     async def refresh_downloads() -> List[aria2p.Download]:
         async with async_timeout.timeout(10):
             [active, waiting, stopped] = await ws_client.call(MultiCall([
-                TellActive(),
-                TellWaiting(),
-                TellStopped()
+                TellActive(keys = DOWNLOAD_DUMP_KEYS),
+                TellWaiting(keys = DOWNLOAD_DUMP_KEYS),
+                TellStopped(keys = DOWNLOAD_DUMP_KEYS)
             ]))
+
             downloads = [*active, *waiting, *stopped]
             _LOGGER.info('download refreshed ' + str(downloads))
             hass.bus.fire('download_list_updated', {'list': [dump(d) for d in downloads]})
