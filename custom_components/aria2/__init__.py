@@ -11,6 +11,8 @@ from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
+from homeassistant.helpers.device_registry import DeviceEntryType
+
 import aria2p
 import async_timeout
 
@@ -40,9 +42,17 @@ async def async_setup_entry(hass, entry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = dict(entry.data)
 
-    ws_client = WSClient(ws_url = ws_url(entry.data[CONF_HOST], entry.data[CONF_PORT]), secret = entry.data[CONF_ACCESS_TOKEN], loop = hass.loop)
+    server_url = ws_url(entry.data[CONF_HOST], entry.data[CONF_PORT])
+    ws_client = WSClient(ws_url = server_url, secret = entry.data[CONF_ACCESS_TOKEN], loop = hass.loop)
 
     hass.data[DOMAIN][entry.entry_id]['ws_client'] = ws_client
+    hass.data[DOMAIN][entry.entry_id]['service_attributes'] = {
+        'config_entry_id': entry.entry_id,
+        'identifiers': {(DOMAIN, server_url)},
+        'manufacturer': "Aria2",
+        'name': "Aria2",
+        'entry_type': DeviceEntryType.SERVICE
+    }
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, 'sensor')

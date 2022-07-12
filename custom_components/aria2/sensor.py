@@ -23,6 +23,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     _LOGGER.debug("Adding aria2 to Home Assistant")
 
     ws_client: WSClient = hass.data[DOMAIN][config_entry.entry_id]['ws_client']
+    service_attributes = hass.data[DOMAIN][config_entry.entry_id]['service_attributes']
 
     async def async_state_update_data():
         """Fetch aria 2 stats data from API."""
@@ -39,19 +40,20 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     aria_name = "aria " + hass.data[DOMAIN][config_entry.entry_id][CONF_HOST]
     async_add_entities([
-        Aria2Sensor(state_coordinator, aria_name, lambda data: data.download_speed / 1000000, DATA_RATE_MEGABYTES_PER_SECOND, "download speed"),
-        Aria2Sensor(state_coordinator, aria_name, lambda data: data.upload_speed / 1000000, DATA_RATE_MEGABYTES_PER_SECOND, "upload speed"),
-        Aria2Sensor(state_coordinator, aria_name, lambda data: data.num_active, None, "number of active download"),
-        Aria2Sensor(state_coordinator, aria_name, lambda data: data.num_waiting, None, "number of waiting download"),
-        Aria2Sensor(state_coordinator, aria_name, lambda data: data.num_stopped_total, None, "number of stopped download")
+        Aria2Sensor(state_coordinator, aria_name, service_attributes, lambda data: data.download_speed / 1000000, DATA_RATE_MEGABYTES_PER_SECOND, "download speed"),
+        Aria2Sensor(state_coordinator, aria_name, service_attributes, lambda data: data.upload_speed / 1000000, DATA_RATE_MEGABYTES_PER_SECOND, "upload speed"),
+        Aria2Sensor(state_coordinator, aria_name, service_attributes, lambda data: data.num_active, None, "number of active download"),
+        Aria2Sensor(state_coordinator, aria_name, service_attributes, lambda data: data.num_waiting, None, "number of waiting download"),
+        Aria2Sensor(state_coordinator, aria_name, service_attributes, lambda data: data.num_stopped_total, None, "number of stopped download")
     ], True)
 
 class Aria2Sensor(SensorEntity):
     """A base class for all aria2 sensors."""
 
-    def __init__(self, coordinator, aria_name, state_function, unit, sensor_name):
+    def __init__(self, coordinator, aria_name, service_attributes, state_function, unit, sensor_name):
         """Initialize the sensor."""
         self._coordinator = coordinator
+        self._service_attributes = service_attributes
         self._aria_name = aria_name
         self._sensor_name = sensor_name
         self._state_function = state_function
@@ -61,6 +63,10 @@ class Aria2Sensor(SensorEntity):
     def name(self):
         """Return the name of the sensor."""
         return self._sensor_name
+
+    @property
+    def device_info(self):
+        return self._service_attributes
 
     @property
     def unique_id(self):
