@@ -11,18 +11,22 @@ _LOGGER = logging.getLogger(__name__)
 
 class WSClient():
 
-    def __init__(self, aria2_api: API, loop: asyncio.AbstractEventLoop):
-        self.aria2_api = aria2_api
+    def __init__(self, ws_url: str, loop: asyncio.AbstractEventLoop, secret: str = None, retry_on_connection_error: bool = True):
         self.loop = loop
-        self.secret = aria2_api.client.secret
-        self.ws = SharableWebsocket(aria2_api.client.ws_server, loop)
+        self.secret = secret
+        self.ws = SharableWebsocket(ws_url, loop, retry_on_connection_error)
         self.notification_listeners = []
         self.running_command = dict()
+        self.is_websocket_listener_started = False
 
     def on_download_state_updated(self, listener):
         self.notification_listeners.append(listener)
 
     async def call(self, command: Command):
+        listen_task = None
+        if not self.is_websocket_listener_started:
+            listen_task = self.loop.create_task(self.listen_notifications())
+
         ws = await self.ws.get()
         future = command.build_awaitable_future(self.loop)
         self.running_command[str(command.id)] = command
@@ -30,7 +34,14 @@ class WSClient():
         json_command = command.to_json(self.secret)
         _LOGGER.debug('send command ' + str(json_command))
         await ws.send(json.dumps(json_command))
-        return await future
+
+        try:
+            result = await future
+            return result
+        finally:
+            if listen_task:
+                listen_task.cancel()
+
 
     async def call_notification_listeners(self, args: list):
         for listener in self.notification_listeners:
@@ -40,6 +51,9 @@ class WSClient():
                 listener(*args)
 
     async def listen_notifications(self):
+        if self.is_websocket_listener_started:
+            return
+        self.is_websocket_listener_started = True
         while True:
             try:
                 _LOGGER.debug('starting refresh loop')
@@ -65,15 +79,21 @@ class WSClient():
                             self.loop.create_task(self.call_notification_listeners([gid, status]))
                         else:
                             _LOGGER.info('unsuported aria method ' + action)
-                    elif 'result' in json_message:
+                    elif 'id' in json_message and json_message['id'] != None:
                         command_id = json_message['id']
                         if command_id in self.running_command:
-                            self.running_command.pop(command_id).result_received(json_message['result'])
+                            command = self.running_command.pop(command_id)
+                            if 'result' in json_message:
+                                command.result_received(json_message['result'])
+                            elif 'error' in json_message:
+                                command.error_received(json_message['error'])
+                            else:
+                                _LOGGER.error('unsuported aria response ' + str(json_message))
                         else:
                             _LOGGER.warn('receive a response for an unknown command. id = ' + command_id)
             except asyncio.CancelledError:
                 _LOGGER.info('the asyncio is cancelled. stop to listen aria2 state update.')
-                await websocket.close()
+                await (await self.ws.get()).close()
                 break
             except:
                 _LOGGER.exception('error on aria2 websocket. restart it. wait 3 seoncds before restart')
@@ -85,12 +105,13 @@ class WSClient():
 
 class SharableWebsocket():
 
-    def __init__(self, url: str, loop: asyncio.AbstractEventLoop):
+    def __init__(self, url: str, loop: asyncio.AbstractEventLoop, retry_on_connection_error: bool = True):
         self.url = url
         self.ws = None
         self.loop = loop
         self.is_opening_socket = False
         self.waiting_opening_socket_futures = []
+        self.retry_on_connection_error = retry_on_connection_error
 
     async def get(self):
         if self.ws and self.ws.open:
@@ -102,10 +123,13 @@ class SharableWebsocket():
             try:
                 self.ws = await websockets.connect(self.url)
             except:
-                _LOGGER.debug("fail to create connection. wait 3 seconds and restart process.")
-                self.is_opening_socket = False
-                await asyncio.sleep(3)
-                return await self.get()
+                if self.retry_on_connection_error:
+                    _LOGGER.exception("fail to create connection. wait 3 seconds and restart process.")
+                    self.is_opening_socket = False
+                    await asyncio.sleep(3)
+                    return await self.get()
+                else:
+                    raise
 
             self.is_opening_socket = False
             for future in self.waiting_opening_socket_futures:

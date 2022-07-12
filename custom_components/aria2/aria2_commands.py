@@ -6,7 +6,7 @@ import logging
 from typing import Any, Generic, List, TypeVar
 from uuid import uuid4
 
-from aria2p import Download, Stats
+from aria2p import Download, Options, Stats
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +37,9 @@ class DownoladKeys(Enum):
     VERIFIED_LENGTH = 'verifiedLength'
     VERIFY_INTEGRITY_PENDING = 'verifyIntegrityPending'
 
+class UnauthorizedError(Exception):
+    pass
+
 class Command(Generic[T]):
 
     def __init__(self, method: str, params: list = []):
@@ -66,8 +69,26 @@ class Command(Generic[T]):
             self.result_future.set_result(result)
         return result
 
-    def get_result(self, json: dict) -> T:
+    def error_received(self, json_error: dict):
+        if json_error['code'] == 1:
+            self._raise_except(UnauthorizedError())
+
+    def get_result(self, json_result: dict) -> T:
         _LOGGER.error('the get_result function should be overriden')
+
+    def _raise_except(self, exception: Exception):
+        if self.result_future and not self.result_future.cancelled():
+            self.result_future.set_exception(exception)
+        else:
+            raise exception
+
+class GetGlobalOption(Command[Options]):
+
+    def __init__(self):
+        super().__init__('aria2.getGlobalOption')
+
+    def get_result(self, json_result: dict) -> Options:
+        return Options(None, json_result)
 
 class GetGlobalStat(Command[Stats]):
 

@@ -6,7 +6,7 @@ from typing import List
 from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import AddUri, DownoladKeys, MultiCall, Pause, Remove, TellActive, TellStopped, TellWaiting, Unpause
 
-from .const import DOMAIN, CONF_PORT
+from .const import DOMAIN, CONF_PORT, ws_url
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -40,19 +40,9 @@ async def async_setup_entry(hass, entry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = dict(entry.data)
 
-    aria2 = aria2p.API(
-        aria2p.Client(
-            host = entry.data[CONF_HOST],
-            port = entry.data[CONF_PORT],
-            secret = entry.data[CONF_ACCESS_TOKEN]
-        )
-    )
+    ws_client = WSClient(ws_url = ws_url(entry.data[CONF_HOST], entry.data[CONF_PORT]), secret = entry.data[CONF_ACCESS_TOKEN], loop = hass.loop)
 
-    ws_client = WSClient(aria2, hass.loop)
-
-    hass.data[DOMAIN][entry.entry_id]['aria2_client'] = aria2
     hass.data[DOMAIN][entry.entry_id]['ws_client'] = ws_client
-    hass.data[DOMAIN]['aria2_client'] = aria2
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, 'sensor')
