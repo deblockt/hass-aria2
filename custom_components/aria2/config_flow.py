@@ -1,23 +1,19 @@
 import logging
-import requests
-import json
 import asyncio
 from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import GetGlobalOption, UnauthorizedError
 
 from homeassistant import config_entries
-from .const import DOMAIN, CONF_PORT, ws_url
+from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
 
 import voluptuous as vol
 
-from homeassistant.core import callback
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
 import socket
 import websockets
-import aria2p
-import traceback
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -27,12 +23,14 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         host = None
         port = None
         secret = None
+        secure_socket = None
         if user_input is not None:
             host = user_input[CONF_HOST]
             port = user_input[CONF_PORT] if CONF_PORT in user_input else 6800
             secret = user_input[CONF_ACCESS_TOKEN] if CONF_ACCESS_TOKEN in user_input else None
+            secure_socket = user_input[CONF_SERCURE_CONNECTION] if CONF_SERCURE_CONNECTION in user_input else False
 
-            ws_client = WSClient(ws_url = ws_url(host, port), secret = secret, loop = self.hass.loop, retry_on_connection_error = False)
+            ws_client = WSClient(ws_url = ws_url(host, port, secure_socket), secret = secret, loop = self.hass.loop, retry_on_connection_error = False)
 
             try:
                 await ws_client.call(GetGlobalOption())
@@ -42,10 +40,11 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data= {
                         CONF_HOST: host,
                         CONF_PORT: port,
-                        CONF_ACCESS_TOKEN: secret
+                        CONF_ACCESS_TOKEN: secret,
+                        CONF_SERCURE_CONNECTION: secure_socket
                     }
                 )
-            except (socket.gaierror, asyncio.exceptions.TimeoutError, ConnectionRefusedError):
+            except (socket.gaierror, asyncio.exceptions.TimeoutError, ConnectionRefusedError, ConnectionResetError):
                 _LOGGER.exception("connexion error")
                 errors['base'] = 'invalid_url'
             except websockets.exceptions.InvalidStatusCode:
@@ -60,7 +59,8 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema = {
             vol.Required(CONF_HOST, default = host or vol.UNDEFINED): str,
             vol.Optional(CONF_PORT, default = port or vol.UNDEFINED): int,
-            vol.Optional(CONF_ACCESS_TOKEN, default = secret or vol.UNDEFINED): str
+            vol.Optional(CONF_ACCESS_TOKEN, default = secret or vol.UNDEFINED): str,
+            vol.Optional(CONF_SERCURE_CONNECTION, default = secure_socket or False): bool
         }
 
         return self.async_show_form(
