@@ -6,7 +6,7 @@ from typing import List
 from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import AddUri, DownoladKeys, MultiCall, Pause, Remove, TellActive, TellStopped, TellWaiting, Unpause
 
-from .const import DOMAIN, CONF_PORT, ws_url
+from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -42,7 +42,7 @@ async def async_setup_entry(hass, entry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = dict(entry.data)
 
-    server_url = ws_url(entry.data[CONF_HOST], entry.data[CONF_PORT])
+    server_url = ws_url(entry.data[CONF_HOST], entry.data[CONF_PORT], entry.data[CONF_SERCURE_CONNECTION] if CONF_SERCURE_CONNECTION in entry.data else False)
     ws_client = WSClient(ws_url = server_url, secret = entry.data[CONF_ACCESS_TOKEN], loop = hass.loop)
 
     hass.data[DOMAIN][entry.entry_id]['ws_client'] = ws_client
