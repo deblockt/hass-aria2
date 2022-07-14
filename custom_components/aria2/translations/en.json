@@ -7,12 +7,13 @@
                 "data": {
                     "port": "Port (optional)",
                     "host": "Host",
-                    "access_token": "Access token (optional)"
+                    "access_token": "Access token (optional)",
+                    "secure_connection": "Enable TLS/SSL encryption"
                 }
             }
         },
         "error": {
-            "connexion": "Can not contact your aria2 server, verify the host and the port.",
+            "connexion": "Can not contact your aria2 server. Verify your SSL configuration, the host and the port.",
             "unknown": "Unknow error occured contacting your aria2 server. check server logs for more details.",
             "json": "We can contact your server, but it respond with a malformed response. Check that your server configuration is OK. Check the used protocol https (secured connection) or http (unsecured connection)",
             "aria_unknown": "Aria server respond with an unmanaged error. check server logs for more details.",

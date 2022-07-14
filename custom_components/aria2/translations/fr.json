@@ -7,12 +7,13 @@
                 "data": {
                     "port": "Port (optionel)",
                     "host": "Host",
-                    "access_token": "Jeton d'accès (optionel)"
+                    "access_token": "Jeton d'accès (optionel)",
+                    "secure_connection": "Activer le chiffrement SSL/TLS"
                 }
             }
         },
         "error": {
-            "connexion": "Impossible de contacter votre serveur aria2. verifier l'url et le port.",
+            "connexion": "Impossible de contacter votre serveur aria2. Vérifiez votre configuration SSL ainsi que l'url et le port.",
             "unknown": "Une erreur inconnue est survenue lors de la connexion à votre serveur aria2. Vérifiez vos logs pour plus de détails.",
             "json": "Nous avons réussi à contacter serveur, mais il a retourné une réponse mal formée. Vérifiez que votre serveur est bien configuré. Vérifiez le protocol utilisé https (connexion sécurisée) ou http (connexion non securisée).",
             "aria_unknown": "Aria a répondu avec une erreur inconnue. Vérifiez vos logs pour plus de détails.",
