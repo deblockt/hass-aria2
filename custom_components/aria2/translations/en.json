@@ -20,5 +20,35 @@
             "aria_unauthorized": "Provided token is rejected by aria server.",
             "invalid_url": "The provided host/port are invalid. host should look like http://host.com or https://host.com. Port sould be a number."
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Choose the configuration to update",
+                "description": "Option documentation can be found [here](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
+                "data": {
+                    "option_to_update": "The option to update"
+                }
+            },
+            "set_option": {
+                "title": "Update the option",
+                "data": {
+                    "option_value": "option value"
+                }
+            },
+            "config_updated": {
+                "title": "Configuration updated",
+                "description": "The configuration has been updated.",
+                "data": {
+                    "continue": "Continue to configure another option"
+                }
+            }
+        },
+        "error": {
+            "invalid_value": "Invalid value for this configuration."
+        },
+        "abort": {
+            "config_successfuly_updated": "ㅤ \n ㅤ \n Configuration successfuly updated."
+        }
     }
 }

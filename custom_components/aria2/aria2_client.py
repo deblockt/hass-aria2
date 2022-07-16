@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from typing import TypeVar
 
 from aria2p import API
 from custom_components.aria2.aria2_commands import Command
@@ -8,6 +9,8 @@ import json
 import logging
 
 _LOGGER = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 class WSClient():
 
@@ -22,7 +25,7 @@ class WSClient():
     def on_download_state_updated(self, listener):
         self.notification_listeners.append(listener)
 
-    async def call(self, command: Command):
+    async def call(self, command: Command[T]) -> T:
         listen_task = None
         if not self.is_websocket_listener_started:
             listen_task = self.loop.create_task(self.listen_notifications())
