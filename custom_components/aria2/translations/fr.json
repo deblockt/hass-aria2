@@ -20,5 +20,35 @@
             "aria_unauthorized": "Votre Jeton d'accès n'est pas reconnu par aria.",
             "invalid_url": "Le host est le port sont invalides."
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Choix de l'option à modifier",
+                "description": "La documentation sur les options est disponnible  [ici](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
+                "data": {
+                    "option_to_update": "L'option à modifier"
+                }
+            },
+            "set_option": {
+                "title": "Modification de l'option",
+                "data": {
+                    "option_value": "valeur de l'option"
+                }
+            },
+            "config_updated": {
+                "title": "Configuration mise à jour",
+                "description": "La configuration a été mise à jour avec succès.",
+                "data": {
+                    "continue": "Continuer à configurer une autre option"
+                }
+            }
+        },
+        "error": {
+            "invalid_value": "La valeur entrée est invalide."
+        },
+        "abort": {
+            "config_successfuly_updated": "ㅤ \n ㅤ \n La configuration a correctement été mise à jour."
+        }
     }
 }

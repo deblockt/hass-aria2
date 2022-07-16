@@ -1,8 +1,11 @@
 import logging
 import asyncio
-from custom_components.aria2.aria2_client import WSClient
-from custom_components.aria2.aria2_commands import GetGlobalOption, UnauthorizedError
+from typing import Any
 
+from custom_components.aria2.aria2_client import WSClient
+from custom_components.aria2.aria2_commands import ChangeGlobalOptions, GetGlobalOption, UnauthorizedError
+
+from homeassistant.helpers.selector import selector
 from homeassistant import config_entries
 from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
 
@@ -65,4 +68,100 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id='user', data_schema=vol.Schema(schema), errors=errors
+        )
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """Create the options flow."""
+        return OptionsFlowHandler(config_entry)
+
+
+GLOBAL_OPTIONS = {
+    'bt-max-open-files': int,
+    'download-result': selector({
+        "select": {
+            "options": ['default', 'full', 'hide'],
+        }
+    }),
+    'keep-unfinished-download-result': bool,
+    'log': str,
+    'log-level': selector({
+        "select": {
+            "options": ['debug', 'info', 'notice', 'warn', 'error'],
+        }
+    }),
+    'max-concurrent-downloads': int,
+    'max-download-result': int,
+    'max-overall-download-limit': str,
+    'max-overall-upload-limit': str,
+    'optimize-concurrent-downloads': str,
+    'save-cookies': str,
+    'save-session': str,
+    'server-stat-of': str,
+}
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+        self.config_name = None
+
+    async def async_step_init(self, user_input: dict[str, Any] = None):
+        """Manage the options."""
+        if user_input is not None and 'option_to_update' in user_input:
+            return await self.load_set_config_flow(user_input['option_to_update'])
+
+        return self.load_config_list_flow()
+
+    async def async_step_set_option(self, user_input: dict[str, Any] = None):
+        """Manage the options."""
+        if user_input is not None and 'option_value' in user_input:
+            return await self.update_option(user_input['option_value'])
+
+        return self.load_config_list_flow()
+
+    async def update_option(self, option_value: str):
+        ws_client: WSClient = self.hass.data[DOMAIN][self.config_entry.entry_id]['ws_client']
+        result = await ws_client.call(ChangeGlobalOptions({self.config_name: option_value}))
+
+        if result:
+            return self.async_abort(reason="config_successfuly_updated")
+        else:
+            return await self.load_set_config_flow(self.config_name, option_value)
+
+    async def load_set_config_flow(self, config_name: str, previous_value: str = None):
+        self.config_name = config_name
+        ws_client: WSClient = self.hass.data[DOMAIN][self.config_entry.entry_id]['ws_client']
+        options = await ws_client.call(GetGlobalOption())
+
+        return self.async_show_form(
+            step_id="set_option",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "option_value",
+                        default = previous_value if previous_value else GLOBAL_OPTIONS[config_name](options.get(config_name)),
+                    ): GLOBAL_OPTIONS[config_name],
+                }
+            ),
+            errors = {'option_value': 'invalid_value'} if previous_value else None
+        )
+
+    def load_config_list_flow(self):
+        option_list = list(GLOBAL_OPTIONS.keys())
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "option_to_update",
+                        default=option_list[0],
+                    ): selector({
+                        "select": {
+                            "options": option_list
+                        }
+                    })
+                }
+            ),
         )
