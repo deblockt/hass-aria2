@@ -3,7 +3,7 @@ import asyncio
 from asyncio import futures
 from enum import Enum
 import logging
-from typing import Any, Generic, List, TypeVar
+from typing import Any, Dict, Generic, List, TypeVar
 from uuid import uuid4
 
 from aria2p import Download, Options, Stats
@@ -89,6 +89,17 @@ class GetGlobalOption(Command[Options]):
 
     def get_result(self, json_result: dict) -> Options:
         return Options(None, json_result)
+
+class ChangeGlobalOptions(Command[bool]):
+
+    def __init__(self, optionValues: Dict[str, str]):
+        super().__init__('aria2.changeGlobalOption', [optionValues])
+
+    def get_result(self, json_result: dict) -> bool:
+        return json_result == 'OK'
+
+    def error_received(self, json_error: dict):
+        return self.result_received('KO')
 
 class GetGlobalStat(Command[Stats]):
 
