@@ -35,6 +35,12 @@ In case of download start/stop/pause/complete/error an event `download_state_upd
 The event data are:
   - `gid`: the gid of the download
   - `status`: the status of the event active/paused/stoped/complete/error
+  - `download.name`: the name of the downloaded file
+  - `download.total_length`: the total length of the file (bytes)
+  - `download.completed_length`: the downloaded length of the file (bytes)
+  - `download.download_speed`: the current download speed (bytes / s)
+
+theses data can be used on automation using template `{{trigger.event.data}}` followed by data name (example: `{{trigger.event.data.download.name}}`)
 
 ## lovelace card
 
