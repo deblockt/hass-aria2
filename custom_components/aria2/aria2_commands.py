@@ -155,6 +155,14 @@ class TellStopped(Command[List[Download]]):
         _LOGGER.debug('get_result for tellStopped. ' + str(json_result))
         return [Download(None, d) for d in json_result]
 
+class TellStatus(Command[Download]):
+    def __init__(self, gid: str, keys: List[DownoladKeys] = []):
+        super().__init__('aria2.tellStatus', [gid, [k.value for k in keys]])
+
+    def get_result(self, json_result: Any) -> str:
+        _LOGGER.debug('get_result for tellStatus. ' + str(json_result))
+        return Download(None, json_result)
+
 class MultiCall(Command[List[Any]]):
     def __init__(self, commands: List[Command[Any]]):
         super().__init__('system.multicall', commands)

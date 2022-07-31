@@ -4,7 +4,7 @@ import logging
 from typing import List
 
 from custom_components.aria2.aria2_client import WSClient
-from custom_components.aria2.aria2_commands import AddUri, DownoladKeys, MultiCall, Pause, Remove, TellActive, TellStopped, TellWaiting, Unpause
+from custom_components.aria2.aria2_commands import AddUri, DownoladKeys, MultiCall, Pause, Remove, TellActive, TellStatus, TellStopped, TellWaiting, Unpause
 
 from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
@@ -27,7 +27,7 @@ DOWNLOAD_DUMP_KEYS = [
     DownoladKeys.DOWNLOAD_SPEED,
     DownoladKeys.DIR
 ]
-def dump(download):
+def dump(download: aria2p.Download):
     return {
         'name': download.name,
         'gid': download.gid,
@@ -94,8 +94,11 @@ async def async_setup_entry(hass, entry):
     hass.loop.create_task(ws_client.listen_notifications())
 
     async def on_download_state_updated(gid, status):
-        hass.bus.fire('download_state_updated', {'gid': gid, 'status': status})
         await download_list_coordinator.async_refresh()
+        download = await ws_client.call(TellStatus(gid, DOWNLOAD_DUMP_KEYS))
+
+        hass.bus.fire('download_state_updated', {'gid': gid, 'status': status, 'download': dump(download)})
+
     ws_client.on_download_state_updated(on_download_state_updated)
 
     return True
