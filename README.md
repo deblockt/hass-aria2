@@ -1,3 +1,6 @@
+[![GitHub release](https://img.shields.io/github/release/deblockt/hass-aria2)](https://github.com/deblockt/aria2-card/releases/hass-aria2)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
+
 # Aria2 integration on home assistant
 
 Aria2 integration for home assistant
@@ -7,20 +10,21 @@ Allow to:
    - call a service to start to downlod
    - get the list of all downloads (to stop, pause and resume)
 
-## installation
+## Installation
 
-Copy the `custom_components/aria2` directory on your `custom_components` directory.
-This repository is compatible with hacs.
+You can use [HACS](https://hacs.xyz/) to install this component. Search for the Integration "aria2 integration".
 
-## configuration
+If you want to install it manualy, copy the `custom_components/aria2` directory on your `custom_components` directory.
+
+## Configuration
 
 Use `add integration` button and search for aria2
 
-## service
+## Service
 
 You can call the service `aria2.start_download` with the `url` parameter to start to download the file
 
-## sensor
+## Sensor
 
 The following sensor are available:
    - download_speed: the current global download speed or your aria2 server
@@ -29,7 +33,7 @@ The following sensor are available:
    - number_of_waiting_download: the total number of download waiting to start or resume
    - number_of_stopped_download: the total number of downloaded file
 
-## event
+## Event
 
 In case of download start/stop/pause/complete/error an event `download_state_updated` is sent.
 The event data are:
@@ -42,7 +46,7 @@ The event data are:
 
 theses data can be used on automation using template `{{trigger.event.data}}` followed by data name (example: `{{trigger.event.data.download.name}}`)
 
-## lovelace card
+## Lovelace card
 
 To be able to display the download list you can use the [aria2-card](https://github.com/deblockt/aria2-card)
 
