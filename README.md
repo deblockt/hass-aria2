@@ -18,7 +18,9 @@ If you want to install it manualy, copy the `custom_components/aria2` directory 
 
 ## Configuration
 
-Use `add integration` button and search for aria2
+Add your device via the Integration menu.
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=aria2)
 
 ## Service
 
