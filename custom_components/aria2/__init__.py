@@ -59,37 +59,10 @@ async def async_setup_entry(hass, entry):
     )
 
     download_list_coordinator = init_download_list_update_coordinator(hass, ws_client)
-    download_list_coordinator.async_add_listener(lambda: hass.bus.fire('download_list_updated', {'list': [dump(d) for d in download_list_coordinator.data]}))
+    download_list_coordinator.async_add_listener(lambda: hass.bus.fire('download_list_updated', {'server_entry_id': entry.entry_id, 'list': [dump(d) for d in download_list_coordinator.data]}))
+    hass.data[DOMAIN][entry.entry_id]['coordinator'] = download_list_coordinator
 
-    async def handle_add_download(call):
-        """Handle the service call."""
-        url = call.data.get('url')
-        await ws_client.call(AddUri([url]))
-
-    async def handle_remove_download(call):
-        """Handle the service call."""
-        gid = call.data.get('gid')
-        await ws_client.call(Remove(gid))
-        await download_list_coordinator.async_refresh()
-
-    async def handle_pause_download(call):
-        """Handle the service call."""
-        gid = call.data.get('gid')
-        await ws_client.call(Pause(gid))
-
-    async def handle_resume_download(call):
-        """Handle the service call."""
-        gid = call.data.get('gid')
-        await ws_client.call(Unpause(gid))
-
-    async def handler_refresh_downloads(call):
-        await download_list_coordinator.async_refresh()
-
-    hass.services.async_register(DOMAIN, 'start_download', handle_add_download)
-    hass.services.async_register(DOMAIN, 'remove_download', handle_remove_download)
-    hass.services.async_register(DOMAIN, 'pause_download', handle_pause_download)
-    hass.services.async_register(DOMAIN, 'resume_download', handle_resume_download)
-    hass.services.async_register(DOMAIN, 'refresh_downloads', handler_refresh_downloads)
+    register_services(hass)
 
     hass.loop.create_task(ws_client.listen_notifications())
 
@@ -97,11 +70,48 @@ async def async_setup_entry(hass, entry):
         await download_list_coordinator.async_refresh()
         download = await ws_client.call(TellStatus(gid, DOWNLOAD_DUMP_KEYS))
 
-        hass.bus.fire('download_state_updated', {'gid': gid, 'status': status, 'download': dump(download)})
+        hass.bus.fire('download_state_updated', {'server_entry_id': entry.entry_id, 'gid': gid, 'status': status, 'download': dump(download)})
 
     ws_client.on_download_state_updated(on_download_state_updated)
 
     return True
+
+def register_services(hass):
+    async def handle_add_download(call):
+        """Handle the service call."""
+        url = call.data.get('url')
+        entry_id = call.data.get('server_entry_id')
+        await hass.data[DOMAIN][entry_id]['ws_client'].call(AddUri([url]))
+
+    async def handle_remove_download(call):
+        """Handle the service call."""
+        gid = call.data.get('gid')
+        entry_id = call.data.get('server_entry_id')
+        await hass.data[DOMAIN][entry_id]['ws_client'].call(Remove(gid))
+        await hass.data[DOMAIN][entry_id]['coordinator'].async_refresh()
+
+    async def handle_pause_download(call):
+        """Handle the service call."""
+        gid = call.data.get('gid')
+        entry_id = call.data.get('server_entry_id')
+        await hass.data[DOMAIN][entry_id]['ws_client'].call(Pause(gid))
+
+    async def handle_resume_download(call):
+        """Handle the service call."""
+        gid = call.data.get('gid')
+        entry_id = call.data.get('server_entry_id')
+        await hass.data[DOMAIN][entry_id]['ws_client'].call(Unpause(gid))
+
+    async def handler_refresh_downloads(call):
+        entry_id = call.data.get('server_entry_id')
+        await hass.data[DOMAIN][entry_id]['coordinator'].async_refresh()
+
+    hass.services.async_register(DOMAIN, 'start_download', handle_add_download)
+    hass.services.async_register(DOMAIN, 'remove_download', handle_remove_download)
+    hass.services.async_register(DOMAIN, 'pause_download', handle_pause_download)
+    hass.services.async_register(DOMAIN, 'resume_download', handle_resume_download)
+    hass.services.async_register(DOMAIN, 'refresh_downloads', handler_refresh_downloads)
+
 
 def init_download_list_update_coordinator(hass, ws_client):
     async def get_downloads() -> List[aria2p.Download]:
