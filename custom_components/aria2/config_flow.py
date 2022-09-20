@@ -39,7 +39,7 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await ws_client.call(GetGlobalOption())
 
                 return self.async_create_entry(
-                    title="aria 2 configuration",
+                    title= "aria " + host + ":" + str(port),
                     data= {
                         CONF_HOST: host,
                         CONF_PORT: port,
