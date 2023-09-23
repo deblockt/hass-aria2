@@ -47,7 +47,6 @@ async def async_setup_entry(hass, entry):
 
     hass.data[DOMAIN][entry.entry_id]['ws_client'] = ws_client
     hass.data[DOMAIN][entry.entry_id]['service_attributes'] = {
-        'config_entry_id': entry.entry_id,
         'identifiers': {(DOMAIN, server_url)},
         'manufacturer': "Aria2",
         'name': "Aria2",
