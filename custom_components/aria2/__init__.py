@@ -7,7 +7,7 @@ from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import AddUri, DownoladKeys, MultiCall, Pause, Remove, TellActive, TellStatus, TellStopped, TellWaiting, Unpause
 
 from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
-from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
+from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN, Platform
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
@@ -54,7 +54,7 @@ async def async_setup_entry(hass, entry):
     }
 
     hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, 'sensor')
+        hass.config_entries.async_forward_entry_setups(entry, [Platform.SENSOR])
     )
 
     download_list_coordinator = init_download_list_update_coordinator(hass, ws_client)
