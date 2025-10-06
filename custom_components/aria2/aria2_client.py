@@ -117,7 +117,7 @@ class SharableWebsocket():
         self.retry_on_connection_error = retry_on_connection_error
 
     async def get(self):
-        if self.ws and self.ws.open:
+        if self.ws and self.ws.state == websockets.protocol.State.OPEN:
             _LOGGER.debug("the websocket is already open reuse it")
             return self.ws
         elif not self.is_opening_socket:
