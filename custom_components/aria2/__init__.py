@@ -1,4 +1,3 @@
-import asyncio
 from datetime import timedelta
 import logging
 from typing import List
@@ -25,17 +24,43 @@ DOWNLOAD_DUMP_KEYS = [
     DownoladKeys.TOTAL_LENGTH,
     DownoladKeys.COMPLETED_LENGTH,
     DownoladKeys.DOWNLOAD_SPEED,
-    DownoladKeys.DIR
+    DownoladKeys.DIR,
+    DownoladKeys.BITTORENT,
+    DownoladKeys.SEEDER,
+    DownoladKeys.UPLOAD_SPEED,
+    DownoladKeys.UPLOADED_LENGTH
 ]
+def dump_files(files: list[aria2p.File]):
+    return [
+        {
+            "path": f.path,
+            "completed_length": f.completed_length,
+            "index": f.index,
+            "length": f.length
+        }
+        for f in files
+    ]
+
 def dump(download: aria2p.Download):
-    return {
-        'name': download.name,
-        'gid': download.gid,
-        'status': download.status,
-        'total_length': download.total_length,
-        'completed_length': download.completed_length,
-        'download_speed': download.download_speed,
+    data = {
+        "name": download.name,
+        "gid": download.gid,
+        "status": download.status,
+        "total_length": download.total_length,
+        "completed_length": download.completed_length,
+        "download_speed": download.download_speed,
+        "files": dump_files(download.files),
+        "is_torrent": download.is_torrent
     }
+
+    if download.is_torrent:
+        data.update({
+            "seeder": download.seeder,
+            "upload_length": download.upload_length,
+            "upload_speed": download.upload_speed
+        })
+
+    return data
 
 async def async_setup_entry(hass, entry):
     """ a aria sensor """
