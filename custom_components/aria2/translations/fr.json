@@ -1,6 +1,5 @@
 {
     "config": {
-        "title": "Aria2",
         "step": {
             "user": {
                 "title": "Configuration de la connexion à Aria2",

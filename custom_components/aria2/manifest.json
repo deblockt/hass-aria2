@@ -1,19 +1,19 @@
 {
   "domain": "aria2",
-  "name": "aria2",
-  "version": "0.5.0",
-  "documentation": "https://github.com/deblockt/hass-aria2",
-  "issue_tracker": "https://github.com/deblockt/hass-aria2/issues",
-  "dependencies": [
-    "http"
-  ],
+  "name": "Aria2",
   "codeowners": [
     "@deblockt"
   ],
+  "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
+  "documentation": "https://github.com/deblockt/hass-aria2",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/deblockt/hass-aria2/issues",
   "requirements": [
     "svgwrite==1.4",
     "aria2p==0.10.4"
   ],
-  "iot_class": "local_polling",
-  "config_flow": true
+  "version": "0.5.0"
 }
