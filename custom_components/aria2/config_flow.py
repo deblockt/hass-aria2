@@ -6,7 +6,7 @@ from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import (
     ChangeGlobalOptions,
     GetGlobalOption,
-    UnauthorizedError,
+    AriaError,
 )
 
 from homeassistant.helpers.selector import selector
@@ -75,7 +75,7 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except websockets.exceptions.InvalidStatusCode:
                 _LOGGER.exception("server exists but is not aria2 server")
                 errors["base"] = "connexion"
-            except UnauthorizedError:
+            except AriaError:
                 errors["base"] = "aria_unauthorized"
             except:
                 _LOGGER.exception("unknow error")

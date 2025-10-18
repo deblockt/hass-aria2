@@ -4,6 +4,7 @@ from enum import Enum
 import logging
 from typing import Any, Dict, Generic, List, TypeVar
 from uuid import uuid4
+from homeassistant.exceptions import HomeAssistantError
 
 from aria2p import Download, Options, Stats
 
@@ -39,9 +40,9 @@ class DownoladKeys(Enum):
     VERIFY_INTEGRITY_PENDING = "verifyIntegrityPending"
 
 
-class UnauthorizedError(Exception):
-    pass
-
+class AriaError(HomeAssistantError):
+    def __init__(self, message: str):
+        super().__init__(message)
 
 class Command(Generic[T]):
     def __init__(self, method: str, params: list = []):
@@ -73,7 +74,7 @@ class Command(Generic[T]):
 
     def error_received(self, json_error: dict):
         if json_error["code"] == 1:
-            self._raise_except(UnauthorizedError())
+            self._raise_except(AriaError(json_error["message"]))
 
     def get_result(self, json_result: dict) -> T:
         _LOGGER.error("the get_result function should be overriden")
