@@ -28,6 +28,7 @@ class DownoladKeys(Enum):
     NUM_PIECES = "numPieces"
     CONNECTIONS = "connections"
     ERROR_CODE = "errorCode"
+    ERROR_MESSAGE = "errorMessage"
     FOLLOWED_BY = "followedBy"
     FOLLOWING = "following"
     BELONGS_TO = "belongsTo"

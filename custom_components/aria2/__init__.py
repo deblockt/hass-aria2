@@ -41,6 +41,8 @@ DOWNLOAD_DUMP_KEYS = [
     DownoladKeys.SEEDER,
     DownoladKeys.UPLOAD_SPEED,
     DownoladKeys.UPLOADED_LENGTH,
+    DownoladKeys.ERROR_CODE,
+    DownoladKeys.ERROR_MESSAGE
 ]
 
 
@@ -66,6 +68,8 @@ def dump(download: aria2p.Download):
         "download_speed": download.download_speed,
         "files": dump_files(download.files),
         "is_torrent": download.is_torrent,
+        "error_code": download.error_code,
+        "error_message": download.error_message
     }
 
     if download.is_torrent:
