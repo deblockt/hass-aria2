@@ -1,6 +1,7 @@
 from datetime import timedelta
 import logging
 from typing import List
+import voluptuous as vol
 
 from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import (
@@ -23,6 +24,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers import config_validation as cv
 
 import aria2p
 import async_timeout
@@ -148,6 +150,37 @@ async def async_setup_entry(hass, entry):
 
 
 def register_services(hass):
+    def entry_exists(hass):
+        """Return a voluptuous validator that checks the entry_id exists in hass.data[DOMAIN]."""
+        def validator(value):
+            entries = list(hass.data.get(DOMAIN, {}).keys())
+            if value not in entries:
+                raise vol.Invalid(
+                    f"entry_id '{value}' unknown. Available entry_ids: {entries}."
+                )
+            return value
+        return validator
+
+    ADD_DOWNLOAD_SCHEMA = vol.Schema({
+        vol.Required("url"): cv.string,
+        vol.Required("server_entry_id"): entry_exists(hass),
+    })
+    REMOVE_DOWNLOAD_SCHEMA = vol.Schema({
+        vol.Required("gid"): cv.string,
+        vol.Required("server_entry_id"): entry_exists(hass),
+    })
+    PAUSE_DOWNLOAD_SCHEMA = vol.Schema({
+        vol.Required("gid"): cv.string,
+        vol.Required("server_entry_id"): entry_exists(hass),
+    })
+    RESUME_DOWNLOAD_SCHEMA = vol.Schema({
+        vol.Required("gid"): cv.string,
+        vol.Required("server_entry_id"): entry_exists(hass),
+    })
+    REFRESH_DOWNLOADS_SCHEMA = vol.Schema({
+        vol.Required("server_entry_id"): entry_exists(hass),
+    })
+    
     async def handle_add_download(call):
         """Handle the service call."""
         url = call.data.get("url")
@@ -180,11 +213,11 @@ def register_services(hass):
         entry_id = call.data.get("server_entry_id")
         await hass.data[DOMAIN][entry_id]["coordinator"].async_refresh()
 
-    hass.services.async_register(DOMAIN, "start_download", handle_add_download)
-    hass.services.async_register(DOMAIN, "remove_download", handle_remove_download)
-    hass.services.async_register(DOMAIN, "pause_download", handle_pause_download)
-    hass.services.async_register(DOMAIN, "resume_download", handle_resume_download)
-    hass.services.async_register(DOMAIN, "refresh_downloads", handler_refresh_downloads)
+    hass.services.async_register(DOMAIN, "start_download", handle_add_download, schema=ADD_DOWNLOAD_SCHEMA)
+    hass.services.async_register(DOMAIN, "remove_download", handle_remove_download, schema=REMOVE_DOWNLOAD_SCHEMA)
+    hass.services.async_register(DOMAIN, "pause_download", handle_pause_download, schema=PAUSE_DOWNLOAD_SCHEMA)
+    hass.services.async_register(DOMAIN, "resume_download", handle_resume_download, schema=RESUME_DOWNLOAD_SCHEMA)
+    hass.services.async_register(DOMAIN, "refresh_downloads", handler_refresh_downloads, schema=REFRESH_DOWNLOADS_SCHEMA)
 
 
 def init_download_list_update_coordinator(hass, ws_client):

@@ -8,6 +8,12 @@ start_download:
       required: true
       selector:
         text:
+    server_entry_id:
+      name: server_entry_id
+      description: The server entry id
+      required: true
+      selector:
+        text:
 
 pause_download:
   name: Pause a download
@@ -16,6 +22,12 @@ pause_download:
     gid:
       name: gid
       description: the gid of the download
+      required: true
+      selector:
+        text:
+    server_entry_id:
+      name: server_entry_id
+      description: The server entry id
       required: true
       selector:
         text:
@@ -30,6 +42,12 @@ remove_download:
       required: true
       selector:
         text:
+    server_entry_id:
+      name: server_entry_id
+      description: The server entry id
+      required: true
+      selector:
+        text:
 
 resume_download:
   name: Resume a download
@@ -38,6 +56,12 @@ resume_download:
     gid:
       name: gid
       description: the gid of the download
+      required: true
+      selector:
+        text:
+    server_entry_id:
+      name: server_entry_id
+      description: The server entry id
       required: true
       selector:
         text:
