@@ -101,7 +101,145 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 GLOBAL_OPTIONS = {
-    "bt-max-open-files": int,
+    # Connection options
+    "all-proxy": str,
+    "all-proxy-passwd": str,
+    "all-proxy-user": str,
+    "connect-timeout": str,  # Seconds (numeric with unit support)
+    "dry-run": bool,
+    "lowest-speed-limit": str,  # Speed with K/M support
+    "max-connection-per-server": str,  # Count
+    "max-download-limit": str,  # Speed with K/M support
+    "max-tries": str,  # Count
+    "max-upload-limit": str,  # Speed with K/M support
+    "min-split-size": str,  # Byte size with K/M support
+    "no-netrc": bool,
+    "no-proxy": str,
+    "proxy-method": selector(
+        {
+            "select": {
+                "options": ["get", "tunnel"],
+            }
+        }
+    ),
+    "remote-time": bool,
+    "reuse-uri": bool,
+    "retry-wait": str,  # Seconds
+    "server-stat-of": str,
+    "split": str,  # Count
+    "timeout": str,  # Seconds
+    "uri-selector": selector(
+        {
+            "select": {
+                "options": ["inorder", "feedback", "adaptive"],
+            }
+        }
+    ),
+
+    # HTTP/HTTPS/FTP options
+    "conditional-get": bool,
+    "content-disposition-default-utf8": bool,
+    "continue": bool,
+    "enable-http-keep-alive": bool,
+    "enable-http-pipelining": bool,
+    "follow-metalink": selector(
+        {
+            "select": {
+                "options": ["true", "false", "mem"],
+            }
+        }
+    ),
+    "follow-torrent": selector(
+        {
+            "select": {
+                "options": ["true", "false", "mem"],
+            }
+        }
+    ),
+    "ftp-passwd": str,
+    "ftp-pasv": bool,
+    "ftp-proxy": str,
+    "ftp-proxy-passwd": str,
+    "ftp-proxy-user": str,
+    "ftp-reuse-connection": bool,
+    "ftp-type": selector(
+        {
+            "select": {
+                "options": ["binary", "ascii"],
+            }
+        }
+    ),
+    "ftp-user": str,
+    "header": str,
+    "http-accept-gzip": bool,
+    "http-auth-challenge": bool,
+    "http-no-cache": bool,
+    "http-passwd": str,
+    "http-proxy": str,
+    "http-proxy-passwd": str,
+    "http-proxy-user": str,
+    "http-user": str,
+    "https-proxy": str,
+    "https-proxy-passwd": str,
+    "https-proxy-user": str,
+    "referer": str,
+    "use-head": bool,
+    "user-agent": str,
+
+    # BitTorrent/Metalink options
+    "bt-enable-hook-after-hash-check": bool,
+    "bt-enable-lpd": bool,
+    "bt-exclude-tracker": str,
+    "bt-external-ip": str,
+    "bt-force-encryption": bool,
+    "bt-hash-check-seed": bool,
+    "bt-load-saved-metadata": bool,
+    "bt-max-open-files": str,  # Count
+    "bt-max-peers": str,  # Count
+    "bt-metadata-only": bool,
+    "bt-min-crypto-level": selector(
+        {
+            "select": {
+                "options": ["plain", "arc4"],
+            }
+        }
+    ),
+    "bt-prioritize-piece": str,
+    "bt-remove-unselected-file": bool,
+    "bt-request-peer-speed-limit": str,  # Speed with K/M support
+    "bt-require-crypto": bool,
+    "bt-save-metadata": bool,
+    "bt-seed-unverified": bool,
+    "bt-stop-timeout": str,  # Seconds
+    "bt-tracker": str,
+    "bt-tracker-connect-timeout": str,  # Seconds
+    "bt-tracker-interval": str,  # Seconds
+    "bt-tracker-timeout": str,  # Seconds
+    "enable-peer-exchange": bool,
+    "metalink-base-uri": str,
+    "metalink-enable-unique-protocol": bool,
+    "metalink-language": str,
+    "metalink-location": str,
+    "metalink-os": str,
+    "metalink-preferred-protocol": selector(
+        {
+            "select": {
+                "options": ["http", "https", "ftp", "none"],
+            }
+        }
+    ),
+    "metalink-version": str,
+    "seed-ratio": str,  # Decimal ratio
+    "seed-time": str,  # Minutes
+
+    # Advanced options
+    "allow-overwrite": bool,
+    "allow-piece-length-change": bool,
+    "always-resume": bool,
+    "async-dns": bool,
+    "auto-file-renaming": bool,
+    "check-integrity": bool,
+    "dir": str,
     "download-result": selector(
         {
             "select": {
@@ -109,6 +247,17 @@ GLOBAL_OPTIONS = {
             }
         }
     ),
+    "enable-mmap": bool,
+    "file-allocation": selector(
+        {
+            "select": {
+                "options": ["none", "prealloc", "trunc", "falloc"],
+            }
+        }
+    ),
+    "force-save": bool,
+    "gid": str,
+    "hash-check-only": bool,
     "keep-unfinished-download-result": bool,
     "log": str,
     "log-level": selector(
@@ -118,14 +267,31 @@ GLOBAL_OPTIONS = {
             }
         }
     ),
-    "max-concurrent-downloads": int,
-    "max-download-result": int,
-    "max-overall-download-limit": str,
-    "max-overall-upload-limit": str,
+    "max-concurrent-downloads": str,  # Count
+    "max-download-result": str,  # Count
+    "max-file-not-found": str,  # Count
+    "max-mmap-limit": str,  # Byte size with K/M support
+    "max-overall-download-limit": str,  # Speed with K/M support
+    "max-overall-upload-limit": str,  # Speed with K/M support
+    "max-resume-failure-tries": str,  # Count
+    "no-file-allocation-limit": str,  # Byte size with K/M support
     "optimize-concurrent-downloads": str,
+    "parameterized-uri": bool,
+    "pause-metadata": bool,
+    "piece-length": str,  # Byte size with K/M support
+    "realtime-chunk-checksum": bool,
+    "remove-control-file": bool,
+    "rpc-save-upload-metadata": bool,
     "save-cookies": str,
     "save-session": str,
-    "server-stat-of": str,
+    "ssh-host-key-md": str,
+    "stream-piece-selector": selector(
+        {
+            "select": {
+                "options": ["default", "inorder", "random", "geom"],
+            }
+        }
+    ),
 }
 
 
