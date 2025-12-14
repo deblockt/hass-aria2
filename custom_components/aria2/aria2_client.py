@@ -1,13 +1,21 @@
 import asyncio
 import inspect
-from typing import TypeVar
-
-from aria2p import API
-from custom_components.aria2.aria2_commands import Command
-from custom_components.aria2.const import WS_RETRY_DELAY_SECONDS
-import websockets
+from typing import TypeVar, Callable
 import json
 import logging
+
+from aria2p import API
+import websockets
+
+from .aria2_commands import Command
+from .const import (
+    WS_RETRY_DELAY_SECONDS,
+    STATE_ACTIVE,
+    STATE_PAUSED,
+    STATE_STOPPED,
+    STATE_COMPLETE,
+    STATE_ERROR,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,11 +116,11 @@ class WSClient:
                         gid = json_message['params'][0]['gid']
 
                         status_mapping = {
-                            'aria2.onDownloadStart': 'active',
-                            'aria2.onDownloadPause': 'paused',
-                            'aria2.onDownloadStop': 'stopped',
-                            'aria2.onDownloadComplete': 'complete',
-                            'aria2.onDownloadError': 'error'
+                            'aria2.onDownloadStart': STATE_ACTIVE,
+                            'aria2.onDownloadPause': STATE_PAUSED,
+                            'aria2.onDownloadStop': STATE_STOPPED,
+                            'aria2.onDownloadComplete': STATE_COMPLETE,
+                            'aria2.onDownloadError': STATE_ERROR
                         }
 
                         if action in status_mapping:

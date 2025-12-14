@@ -12,8 +12,16 @@ COORDINATOR_FAST_UPDATE_SECONDS = 3
 COORDINATOR_SLOW_UPDATE_SECONDS = 30
 TIMEOUT_SECONDS = 10
 
+# Download state constants
+STATE_ACTIVE = "active"
+STATE_WAITING = "waiting"
+STATE_STOPPED = "stopped"
+STATE_PAUSED = "paused"
+STATE_COMPLETE = "complete"
+STATE_ERROR = "error"
 
-def ws_url(host: str, port: str, secure_socket: bool = False):
+
+def build_ws_url(host: str, port: str, secure_socket: bool = False) -> str:
     if host.startswith('https'):
         return f"wss://{host[8:]}:{port}/jsonrpc"
     elif host.startswith('http'):
