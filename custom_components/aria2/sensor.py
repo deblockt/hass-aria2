@@ -31,6 +31,7 @@ from .const import (
     COORDINATOR_FAST_UPDATE_SECONDS,
     STATE_ACTIVE,
     STATE_WAITING,
+    STATE_PAUSED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -109,6 +110,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
                 ws_client,
                 aria_name,
                 service_attributes,
+                [STATE_ACTIVE],
                 STATE_ACTIVE,
                 "active gids"
             ),
@@ -116,6 +118,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
                 ws_client,
                 aria_name,
                 service_attributes,
+                [STATE_WAITING, STATE_PAUSED],
                 STATE_WAITING,
                 "waiting gids"
             )
@@ -127,7 +130,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
 class Aria2StateListSensor(SensorEntity):
     """Sensor for aria2 download GID lists by state.
 
-    Tracks downloads in a specific state (active, waiting) and
+    Tracks downloads in specific states (active, waiting, paused) and
     provides their GIDs as a newline-separated list.
     """
 
@@ -139,13 +142,15 @@ class Aria2StateListSensor(SensorEntity):
         ws_client: WSClient,
         aria_name: str,
         service_attributes: dict[str, Any],
-        state: str,
+        states: list[str],
+        command_state: str,
         sensor_name: str,
     ) -> None:
         """Initialize the sensor."""
         self._gid_list = ""
         self._aria_name = aria_name
-        self._state = state
+        self._states = states
+        self._command_state = command_state
         self._ws_client = ws_client
 
         self._attr_name = f"{aria_name}-{sensor_name}"
@@ -160,7 +165,7 @@ class Aria2StateListSensor(SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         async def on_download_state_updated(download_gid: str, status: str) -> None:
-            if status == self._state:
+            if status in self._states:
                 if download_gid not in self._gid_list:
                     self._gid_list = self._gid_list + "\n" + download_gid
             else:
@@ -174,8 +179,8 @@ class Aria2StateListSensor(SensorEntity):
             STATE_ACTIVE: TellActive,
             STATE_WAITING: TellWaiting
         }
-        downloads = await self._ws_client.call(state_to_command.get(self._state)(keys=[DownloadKeys.GID, DownloadKeys.STATUS]))
-        self._gid_list = "\n".join(d.gid for d in downloads if d.status == self._state)
+        downloads = await self._ws_client.call(state_to_command.get(self._command_state)(keys=[DownloadKeys.GID, DownloadKeys.STATUS]))
+        self._gid_list = "\n".join(d.gid for d in downloads if d.status in self._states)
         
 class Aria2Sensor(CoordinatorEntity, SensorEntity):
     """Base sensor for aria2 statistics.
