@@ -13,7 +13,9 @@ _LOGGER = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class DownoladKeys(Enum):
+class DownloadKeys(Enum):
+    """Enumeration of aria2 download status keys."""
+
     GID = "gid"
     STATUS = "status"
     TOTAL_LENGTH = "totalLength"
@@ -35,23 +37,46 @@ class DownoladKeys(Enum):
     BELONGS_TO = "belongsTo"
     DIR = "dir"
     FILES = "files"
-    BITTORENT = "bittorrent"
+    BITTORRENT = "bittorrent"
     VERIFIED_LENGTH = "verifiedLength"
     VERIFY_INTEGRITY_PENDING = "verifyIntegrityPending"
 
 
 class AriaError(HomeAssistantError):
+    """Exception raised for aria2 RPC errors."""
+
     def __init__(self, message: str):
+        """Initialize the error with a message."""
         super().__init__(message)
 
+
 class Command(Generic[T]):
+    """Base class for aria2 JSON-RPC commands.
+
+    Generic command that can be executed via WebSocket to aria2 server.
+    """
+
     def __init__(self, method: str, params: list = []):
+        """Initialize a command.
+
+        Args:
+            method: The aria2 RPC method name
+            params: List of parameters for the method
+        """
         self.id = uuid4()
         self.method_name = method
         self.params = params
         self.result_future = None
 
     def to_json(self, security_token: str = None) -> dict:
+        """Convert command to JSON-RPC format.
+
+        Args:
+            security_token: Optional authentication token
+
+        Returns:
+            JSON-RPC formatted dictionary
+        """
         params = ["token:" + security_token] if security_token else []
         params.extend(self.params)
 
@@ -87,7 +112,10 @@ class Command(Generic[T]):
 
 
 class GetGlobalOption(Command[Options]):
+    """Command to get aria2 global options."""
+
     def __init__(self):
+        """Initialize the GetGlobalOption command."""
         super().__init__("aria2.getGlobalOption")
 
     def get_result(self, json_result: dict) -> Options:
@@ -95,7 +123,14 @@ class GetGlobalOption(Command[Options]):
 
 
 class ChangeGlobalOptions(Command[bool]):
+    """Command to change aria2 global options."""
+
     def __init__(self, optionValues: Dict[str, str]):
+        """Initialize the ChangeGlobalOptions command.
+
+        Args:
+            optionValues: Dictionary of option names and values to change
+        """
         super().__init__("aria2.changeGlobalOption", [optionValues])
 
     def get_result(self, json_result: dict) -> bool:
@@ -110,7 +145,7 @@ class GetGlobalStat(Command[Stats]):
         super().__init__("aria2.getGlobalStat")
 
     def get_result(self, json_result: dict) -> Stats:
-        _LOGGER.debug("get_result for GetGlobalStat. " + str(json_result))
+        _LOGGER.debug("get_result for GetGlobalStat. %s", json_result)
         return Stats(json_result)
 
 
@@ -119,7 +154,7 @@ class Unpause(Command[str]):
         super().__init__("aria2.unpause", [gid])
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for unpause. " + str(json_result))
+        _LOGGER.debug("get_result for unpause. %s", json_result)
         return json_result
 
 
@@ -128,7 +163,7 @@ class Pause(Command[str]):
         super().__init__("aria2.pause", [gid])
 
     def get_result(self, json_result: dict) -> str:
-        _LOGGER.debug("get_result for pause. " + str(json_result))
+        _LOGGER.debug("get_result for pause. %s", json_result)
         return json_result
 
 
@@ -137,7 +172,7 @@ class Remove(Command[str]):
         super().__init__("aria2.remove", [gid])
 
     def get_result(self, json_result: dict) -> str:
-        _LOGGER.debug("get_result for remove. " + str(json_result))
+        _LOGGER.debug("get_result for remove. %s", json_result)
         return json_result
 
 
@@ -146,7 +181,7 @@ class AddUri(Command[str]):
         super().__init__("aria2.addUri", [uris])
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for addUri. " + str(json_result))
+        _LOGGER.debug("get_result for addUri. %s", json_result)
         return json_result
 
 
@@ -155,51 +190,51 @@ class AddTorrent(Command[str]):
         super().__init__("aria2.addTorrent", [uri])
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for addTorrent. " + str(json_result))
+        _LOGGER.debug("get_result for addTorrent. %s", json_result)
         return json_result
 
 
 class TellActive(Command[List[Download]]):
-    def __init__(self, keys: List[DownoladKeys] = []):
+    def __init__(self, keys: List[DownloadKeys] = []):
         super().__init__("aria2.tellActive", [[k.value for k in keys]])
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for tellActive. " + str(json_result))
+        _LOGGER.debug("get_result for tellActive. %s", json_result)
         return [Download(None, d) for d in json_result]
 
 
 class TellWaiting(Command[List[Download]]):
     def __init__(
-        self, offset: int = 0, pageSize: int = 1000, keys: List[DownoladKeys] = []
+        self, offset: int = 0, pageSize: int = 1000, keys: List[DownloadKeys] = []
     ):
         super().__init__(
             "aria2.tellWaiting", [offset, pageSize, [k.value for k in keys]]
         )
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for tellWaiting. " + str(json_result))
+        _LOGGER.debug("get_result for tellWaiting. %s", json_result)
         return [Download(None, d) for d in json_result]
 
 
 class TellStopped(Command[List[Download]]):
     def __init__(
-        self, offset: int = 0, pageSize: int = 1000, keys: List[DownoladKeys] = []
+        self, offset: int = 0, pageSize: int = 1000, keys: List[DownloadKeys] = []
     ):
         super().__init__(
             "aria2.tellStopped", [offset, pageSize, [k.value for k in keys]]
         )
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for tellStopped. " + str(json_result))
+        _LOGGER.debug("get_result for tellStopped. %s", json_result)
         return [Download(None, d) for d in json_result]
 
 
 class TellStatus(Command[Download]):
-    def __init__(self, gid: str, keys: List[DownoladKeys] = []):
+    def __init__(self, gid: str, keys: List[DownloadKeys] = []):
         super().__init__("aria2.tellStatus", [gid, [k.value for k in keys]])
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for tellStatus. " + str(json_result))
+        _LOGGER.debug("get_result for tellStatus. %s", json_result)
         return Download(None, json_result)
 
 
@@ -223,7 +258,7 @@ class MultiCall(Command[List[Any]]):
         }
 
     def get_result(self, json_result: Any) -> str:
-        _LOGGER.debug("get_result for multi_call. " + str(json_result))
+        _LOGGER.debug("get_result for multi_call. %s", json_result)
         return [
             self.params[index].get_result(result[0])
             for index, result in enumerate(json_result)
