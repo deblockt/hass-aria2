@@ -1,53 +1,146 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "title": "Configuration de la connexion à Aria2",
-                "data": {
-                    "port": "Port (optionel)",
-                    "host": "Host",
-                    "access_token": "Jeton d'accès (optionel)",
-                    "secure_connection": "Activer le chiffrement SSL/TLS"
-                }
-            }
-        },
-        "error": {
-            "connexion": "Impossible de contacter votre serveur aria2. Vérifiez votre configuration SSL ainsi que l'url et le port.",
-            "unknown": "Une erreur inconnue est survenue lors de la connexion à votre serveur aria2. Vérifiez vos logs pour plus de détails.",
-            "json": "Nous avons réussi à contacter serveur, mais il a retourné une réponse mal formée. Vérifiez que votre serveur est bien configuré. Vérifiez le protocol utilisé https (connexion sécurisée) ou http (connexion non securisée).",
-            "aria_unknown": "Aria a répondu avec une erreur inconnue. Vérifiez vos logs pour plus de détails.",
-            "aria_unauthorized": "Votre Jeton d'accès n'est pas reconnu par aria.",
-            "invalid_url": "Le host est le port sont invalides."
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration de la connexion à Aria2",
+        "data": {
+          "port": "Port (optionel)",
+          "host": "Host",
+          "access_token": "Jeton d'accès (optionel)",
+          "secure_connection": "Activer le chiffrement SSL/TLS"
         }
+      }
     },
-    "options": {
-        "step": {
-            "init": {
-                "title": "Choix de l'option à modifier",
-                "description": "La documentation sur les options est disponnible  [ici](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
-                "data": {
-                    "option_to_update": "L'option à modifier"
-                }
-            },
-            "set_option": {
-                "title": "Modification de l'option",
-                "data": {
-                    "option_value": "valeur de l'option"
-                }
-            },
-            "config_updated": {
-                "title": "Configuration mise à jour",
-                "description": "La configuration a été mise à jour avec succès.",
-                "data": {
-                    "continue": "Continuer à configurer une autre option"
-                }
-            }
-        },
-        "error": {
-            "invalid_value": "La valeur entrée est invalide."
-        },
-        "abort": {
-            "config_successfuly_updated": "ㅤ \n ㅤ \n La configuration a correctement été mise à jour."
-        }
+    "error": {
+      "connexion": "Impossible de contacter votre serveur aria2. Vérifiez votre configuration SSL ainsi que l'url et le port.",
+      "unknown": "Une erreur inconnue est survenue lors de la connexion à votre serveur aria2. Vérifiez vos logs pour plus de détails.",
+      "json": "Nous avons réussi à contacter serveur, mais il a retourné une réponse mal formée. Vérifiez que votre serveur est bien configuré. Vérifiez le protocol utilisé https (connexion sécurisée) ou http (connexion non securisée).",
+      "aria_unknown": "Aria a répondu avec une erreur inconnue. Vérifiez vos logs pour plus de détails.",
+      "aria_unauthorized": "Votre Jeton d'accès n'est pas reconnu par aria.",
+      "invalid_url": "Le host est le port sont invalides."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Choix de l'option à modifier",
+        "description": "La documentation sur les options est disponnible  [ici](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
+        "data": {
+          "option_to_update": "L'option à modifier"
+        }
+      },
+      "set_option": {
+        "title": "Modification de l'option",
+        "data": {
+          "option_value": "valeur de l'option"
+        }
+      },
+      "config_updated": {
+        "title": "Configuration mise à jour",
+        "description": "La configuration a été mise à jour avec succès.",
+        "data": {
+          "continue": "Continuer à configurer une autre option"
+        }
+      }
+    },
+    "error": {
+      "invalid_value": "La valeur entrée est invalide."
+    },
+    "abort": {
+      "config_successfuly_updated": "ㅤ \n ㅤ \n La configuration a correctement été mise à jour."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "download_speed": {
+        "name": "Vitesse de téléchargement"
+      },
+      "upload_speed": {
+        "name": "Vitesse d'envoi"
+      },
+      "number_of_active_download": {
+        "name": "Nombre de téléchargements actifs"
+      },
+      "number_of_waiting_download": {
+        "name": "Nombre de téléchargements en attente"
+      },
+      "number_of_stopped_download": {
+        "name": "Nombre de téléchargements arrêtés"
+      },
+      "active_gids": {
+        "name": "GIDs actifs"
+      },
+      "waiting_gids": {
+        "name": "GIDs en attente"
+      }
+    }
+  },
+  "services": {
+    "start_download": {
+      "name": "Démarrer un téléchargement",
+      "description": "Ajouter un nouveau téléchargement à aria2",
+      "fields": {
+        "url": {
+          "name": "URL",
+          "description": "URL ou chemin du fichier torrent à télécharger"
+        },
+        "server_entry_id": {
+          "name": "ID d'entrée du serveur",
+          "description": "L'ID d'entrée du serveur aria2"
+        }
+      }
+    },
+    "remove_download": {
+      "name": "Supprimer un téléchargement",
+      "description": "Supprimer un téléchargement d'aria2",
+      "fields": {
+        "gid": {
+          "name": "GID",
+          "description": "Le GID du téléchargement à supprimer"
+        },
+        "server_entry_id": {
+          "name": "ID d'entrée du serveur",
+          "description": "L'ID d'entrée du serveur aria2"
+        }
+      }
+    },
+    "pause_download": {
+      "name": "Mettre en pause un téléchargement",
+      "description": "Mettre en pause un téléchargement dans aria2",
+      "fields": {
+        "gid": {
+          "name": "GID",
+          "description": "Le GID du téléchargement à mettre en pause"
+        },
+        "server_entry_id": {
+          "name": "ID d'entrée du serveur",
+          "description": "L'ID d'entrée du serveur aria2"
+        }
+      }
+    },
+    "resume_download": {
+      "name": "Reprendre un téléchargement",
+      "description": "Reprendre un téléchargement en pause dans aria2",
+      "fields": {
+        "gid": {
+          "name": "GID",
+          "description": "Le GID du téléchargement à reprendre"
+        },
+        "server_entry_id": {
+          "name": "ID d'entrée du serveur",
+          "description": "L'ID d'entrée du serveur aria2"
+        }
+      }
+    },
+    "refresh_downloads": {
+      "name": "Actualiser les téléchargements",
+      "description": "Actualiser la liste des téléchargements depuis aria2",
+      "fields": {
+        "server_entry_id": {
+          "name": "ID d'entrée du serveur",
+          "description": "L'ID d'entrée du serveur aria2"
+        }
+      }
+    }
+  }
 }
