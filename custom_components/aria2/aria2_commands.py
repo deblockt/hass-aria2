@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from asyncio import futures
 from enum import Enum
@@ -56,7 +58,7 @@ class Command(Generic[T]):
     Generic command that can be executed via WebSocket to aria2 server.
     """
 
-    def __init__(self, method: str, params: list = []):
+    def __init__(self, method: str, params: list | None = None) -> None:
         """Initialize a command.
 
         Args:
@@ -65,10 +67,10 @@ class Command(Generic[T]):
         """
         self.id = uuid4()
         self.method_name = method
-        self.params = params
+        self.params = params if params is not None else []
         self.result_future = None
 
-    def to_json(self, security_token: str = None) -> dict:
+    def to_json(self, security_token: str | None = None) -> dict:
         """Convert command to JSON-RPC format.
 
         Args:
@@ -87,7 +89,7 @@ class Command(Generic[T]):
             "params": params,
         }
 
-    def build_awaitable_future(self, loop: asyncio.AbstractEventLoop) -> futures.Future:
+    def build_awaitable_future(self, loop: asyncio.AbstractEventLoop) -> futures.Future[T]:
         self.result_future = loop.create_future()
         return self.result_future
 
@@ -97,14 +99,15 @@ class Command(Generic[T]):
             self.result_future.set_result(result)
         return result
 
-    def error_received(self, json_error: dict):
+    def error_received(self, json_error: dict) -> None:
         if json_error["code"] == 1:
             self._raise_except(AriaError(json_error["message"]))
 
     def get_result(self, json_result: dict) -> T:
         _LOGGER.error("the get_result function should be overriden")
+        raise NotImplementedError("Subclasses must implement get_result")
 
-    def _raise_except(self, exception: Exception):
+    def _raise_except(self, exception: Exception) -> None:
         if self.result_future and not self.result_future.cancelled():
             self.result_future.set_exception(exception)
         else:
@@ -125,13 +128,13 @@ class GetGlobalOption(Command[Options]):
 class ChangeGlobalOptions(Command[bool]):
     """Command to change aria2 global options."""
 
-    def __init__(self, optionValues: Dict[str, str]):
+    def __init__(self, option_values: Dict[str, str]):
         """Initialize the ChangeGlobalOptions command.
 
         Args:
-            optionValues: Dictionary of option names and values to change
+            option_values: Dictionary of option names and values to change
         """
-        super().__init__("aria2.changeGlobalOption", [optionValues])
+        super().__init__("aria2.changeGlobalOption", [option_values])
 
     def get_result(self, json_result: dict) -> bool:
         return json_result == "OK"
@@ -141,7 +144,10 @@ class ChangeGlobalOptions(Command[bool]):
 
 
 class GetGlobalStat(Command[Stats]):
-    def __init__(self):
+    """Command to get aria2 global statistics."""
+
+    def __init__(self) -> None:
+        """Initialize the GetGlobalStat command."""
         super().__init__("aria2.getGlobalStat")
 
     def get_result(self, json_result: dict) -> Stats:
@@ -150,7 +156,14 @@ class GetGlobalStat(Command[Stats]):
 
 
 class Unpause(Command[str]):
-    def __init__(self, gid):
+    """Command to unpause a download."""
+
+    def __init__(self, gid: str) -> None:
+        """Initialize the Unpause command.
+
+        Args:
+            gid: Download GID to unpause
+        """
         super().__init__("aria2.unpause", [gid])
 
     def get_result(self, json_result: Any) -> str:
@@ -159,7 +172,14 @@ class Unpause(Command[str]):
 
 
 class Pause(Command[str]):
-    def __init__(self, gid):
+    """Command to pause a download."""
+
+    def __init__(self, gid: str) -> None:
+        """Initialize the Pause command.
+
+        Args:
+            gid: Download GID to pause
+        """
         super().__init__("aria2.pause", [gid])
 
     def get_result(self, json_result: dict) -> str:
@@ -168,7 +188,14 @@ class Pause(Command[str]):
 
 
 class Remove(Command[str]):
-    def __init__(self, gid):
+    """Command to remove a download."""
+
+    def __init__(self, gid: str) -> None:
+        """Initialize the Remove command.
+
+        Args:
+            gid: Download GID to remove
+        """
         super().__init__("aria2.remove", [gid])
 
     def get_result(self, json_result: dict) -> str:
@@ -177,7 +204,14 @@ class Remove(Command[str]):
 
 
 class AddUri(Command[str]):
-    def __init__(self, uris: List[str]):
+    """Command to add a download by URI."""
+
+    def __init__(self, uris: List[str]) -> None:
+        """Initialize the AddUri command.
+
+        Args:
+            uris: List of URIs to download
+        """
         super().__init__("aria2.addUri", [uris])
 
     def get_result(self, json_result: Any) -> str:
@@ -186,7 +220,14 @@ class AddUri(Command[str]):
 
 
 class AddTorrent(Command[str]):
-    def __init__(self, uri: str):
+    """Command to add a torrent download."""
+
+    def __init__(self, uri: str) -> None:
+        """Initialize the AddTorrent command.
+
+        Args:
+            uri: Torrent URI
+        """
         super().__init__("aria2.addTorrent", [uri])
 
     def get_result(self, json_result: Any) -> str:
@@ -195,54 +236,98 @@ class AddTorrent(Command[str]):
 
 
 class TellActive(Command[List[Download]]):
-    def __init__(self, keys: List[DownloadKeys] = []):
+    """Command to get active downloads."""
+
+    def __init__(self, keys: List[DownloadKeys] | None = None) -> None:
+        """Initialize the TellActive command.
+
+        Args:
+            keys: List of download keys to retrieve
+        """
+        keys = keys or []
         super().__init__("aria2.tellActive", [[k.value for k in keys]])
 
-    def get_result(self, json_result: Any) -> str:
+    def get_result(self, json_result: Any) -> List[Download]:
         _LOGGER.debug("get_result for tellActive. %s", json_result)
         return [Download(None, d) for d in json_result]
 
 
 class TellWaiting(Command[List[Download]]):
+    """Command to get waiting downloads."""
+
     def __init__(
-        self, offset: int = 0, pageSize: int = 1000, keys: List[DownloadKeys] = []
-    ):
+        self, offset: int = 0, page_size: int = 1000, keys: List[DownloadKeys] | None = None
+    ) -> None:
+        """Initialize the TellWaiting command.
+
+        Args:
+            offset: Offset for pagination
+            page_size: Number of downloads to retrieve
+            keys: List of download keys to retrieve
+        """
+        keys = keys or []
         super().__init__(
-            "aria2.tellWaiting", [offset, pageSize, [k.value for k in keys]]
+            "aria2.tellWaiting", [offset, page_size, [k.value for k in keys]]
         )
 
-    def get_result(self, json_result: Any) -> str:
+    def get_result(self, json_result: Any) -> List[Download]:
         _LOGGER.debug("get_result for tellWaiting. %s", json_result)
         return [Download(None, d) for d in json_result]
 
 
 class TellStopped(Command[List[Download]]):
+    """Command to get stopped downloads."""
+
     def __init__(
-        self, offset: int = 0, pageSize: int = 1000, keys: List[DownloadKeys] = []
-    ):
+        self, offset: int = 0, page_size: int = 1000, keys: List[DownloadKeys] | None = None
+    ) -> None:
+        """Initialize the TellStopped command.
+
+        Args:
+            offset: Offset for pagination
+            page_size: Number of downloads to retrieve
+            keys: List of download keys to retrieve
+        """
+        keys = keys or []
         super().__init__(
-            "aria2.tellStopped", [offset, pageSize, [k.value for k in keys]]
+            "aria2.tellStopped", [offset, page_size, [k.value for k in keys]]
         )
 
-    def get_result(self, json_result: Any) -> str:
+    def get_result(self, json_result: Any) -> List[Download]:
         _LOGGER.debug("get_result for tellStopped. %s", json_result)
         return [Download(None, d) for d in json_result]
 
 
 class TellStatus(Command[Download]):
-    def __init__(self, gid: str, keys: List[DownloadKeys] = []):
+    """Command to get download status."""
+
+    def __init__(self, gid: str, keys: List[DownloadKeys] | None = None) -> None:
+        """Initialize the TellStatus command.
+
+        Args:
+            gid: Download GID
+            keys: List of download keys to retrieve
+        """
+        keys = keys or []
         super().__init__("aria2.tellStatus", [gid, [k.value for k in keys]])
 
-    def get_result(self, json_result: Any) -> str:
+    def get_result(self, json_result: Any) -> Download:
         _LOGGER.debug("get_result for tellStatus. %s", json_result)
         return Download(None, json_result)
 
 
 class MultiCall(Command[List[Any]]):
-    def __init__(self, commands: List[Command[Any]]):
+    """Command to execute multiple commands in a single call."""
+
+    def __init__(self, commands: List[Command[Any]]) -> None:
+        """Initialize the MultiCall command.
+
+        Args:
+            commands: List of commands to execute
+        """
         super().__init__("system.multicall", commands)
 
-    def to_json(self, security_token: str = None) -> dict:
+    def to_json(self, security_token: str | None = None) -> dict:
         params = []
         for command in self.params:
             command_json = command.to_json(security_token)
@@ -257,7 +342,7 @@ class MultiCall(Command[List[Any]]):
             "params": [params],
         }
 
-    def get_result(self, json_result: Any) -> str:
+    def get_result(self, json_result: Any) -> List[Any]:
         _LOGGER.debug("get_result for multi_call. %s", json_result)
         return [
             self.params[index].get_result(result[0])

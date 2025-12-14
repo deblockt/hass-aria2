@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from datetime import timedelta
 import logging
@@ -28,10 +30,6 @@ from .const import (
     COORDINATOR_SLOW_UPDATE_SECONDS,
     TIMEOUT_SECONDS,
     STATE_ACTIVE,
-    STATE_PAUSED,
-    STATE_STOPPED,
-    STATE_COMPLETE,
-    STATE_ERROR,
 )
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN, Platform
 from homeassistant.helpers.update_coordinator import (

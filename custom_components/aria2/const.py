@@ -20,6 +20,12 @@ STATE_PAUSED = "paused"
 STATE_COMPLETE = "complete"
 STATE_ERROR = "error"
 
+# Conversion constants
+BYTES_TO_MEGABYTES = 1_000_000
+
+# Default values
+DEFAULT_WS_PORT = 6800
+
 
 def build_ws_url(host: str, port: str, secure_socket: bool = False) -> str:
     if host.startswith('https'):
