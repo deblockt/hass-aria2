@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import asyncio
 from typing import Any
@@ -16,7 +18,7 @@ from .aria2_commands import (
     GetGlobalOption,
     AriaError,
 )
-from .const import CONF_SECURE_CONNECTION, DOMAIN, CONF_PORT, build_ws_url
+from .const import CONF_SECURE_CONNECTION, DOMAIN, CONF_PORT, build_ws_url, DEFAULT_WS_PORT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,7 +44,7 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         secure_socket = None
         if user_input is not None:
             host = user_input[CONF_HOST]
-            port = user_input[CONF_PORT] if CONF_PORT in user_input else 6800
+            port = user_input[CONF_PORT] if CONF_PORT in user_input else DEFAULT_WS_PORT
             secret = (
                 user_input[CONF_ACCESS_TOKEN]
                 if CONF_ACCESS_TOKEN in user_input
@@ -103,7 +105,7 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
+        config_entry: config_entries.ConfigEntry,  # noqa: ARG004
     ) -> config_entries.OptionsFlow:
         """Create the options flow."""
         return OptionsFlowHandler()

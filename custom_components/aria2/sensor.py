@@ -1,5 +1,7 @@
 """Support for aria2 downloader."""
 
+from __future__ import annotations
+
 import asyncio
 from datetime import timedelta
 import logging
@@ -21,7 +23,6 @@ from .aria2_client import WSClient
 from .aria2_commands import (
     DownloadKeys,
     TellActive,
-    TellStopped,
     TellWaiting,
     GetGlobalStat,
 )
@@ -32,6 +33,7 @@ from .const import (
     STATE_ACTIVE,
     STATE_WAITING,
     STATE_PAUSED,
+    BYTES_TO_MEGABYTES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,7 +72,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
                 state_coordinator,
                 aria_name,
                 service_attributes,
-                lambda data: data.download_speed / 1000000,
+                lambda data: data.download_speed / BYTES_TO_MEGABYTES,
                 UnitOfDataRate.MEGABYTES_PER_SECOND,
                 "download speed",
             ),
@@ -78,7 +80,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
                 state_coordinator,
                 aria_name,
                 service_attributes,
-                lambda data: data.upload_speed / 1000000,
+                lambda data: data.upload_speed / BYTES_TO_MEGABYTES,
                 UnitOfDataRate.MEGABYTES_PER_SECOND,
                 "upload speed",
             ),
@@ -147,7 +149,7 @@ class Aria2StateListSensor(SensorEntity):
         sensor_name: str,
     ) -> None:
         """Initialize the sensor."""
-        self._gid_list = ""
+        self._gid_set: set[str] = set()
         self._aria_name = aria_name
         self._states = states
         self._command_state = command_state
@@ -160,16 +162,15 @@ class Aria2StateListSensor(SensorEntity):
     @property
     def state(self) -> str:
         """Return the state of the sensor."""
-        return self._gid_list
+        return "\n".join(sorted(self._gid_set))
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         async def on_download_state_updated(download_gid: str, status: str) -> None:
             if status in self._states:
-                if download_gid not in self._gid_list:
-                    self._gid_list = self._gid_list + "\n" + download_gid
+                self._gid_set.add(download_gid)
             else:
-                self._gid_list = "\n".join(gid for gid in self._gid_list.split("\n") if gid != download_gid)
+                self._gid_set.discard(download_gid)
 
             self.async_write_ha_state()
 
@@ -180,7 +181,7 @@ class Aria2StateListSensor(SensorEntity):
             STATE_WAITING: TellWaiting
         }
         downloads = await self._ws_client.call(state_to_command.get(self._command_state)(keys=[DownloadKeys.GID, DownloadKeys.STATUS]))
-        self._gid_list = "\n".join(d.gid for d in downloads if d.status in self._states)
+        self._gid_set = {d.gid for d in downloads if d.status in self._states}
         
 class Aria2Sensor(CoordinatorEntity, SensorEntity):
     """Base sensor for aria2 statistics.

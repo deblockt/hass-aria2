@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import inspect
 from typing import TypeVar, Callable
 import json
 import logging
 
-from aria2p import API
 import websockets
 
 from .aria2_commands import Command
@@ -29,7 +30,7 @@ class WSClient:
     with automatic retry on connection errors.
     """
 
-    def __init__(self, ws_url: str, loop: asyncio.AbstractEventLoop, secret: str = None, retry_on_connection_error: bool = True):
+    def __init__(self, ws_url: str, loop: asyncio.AbstractEventLoop, secret: str | None = None, retry_on_connection_error: bool = True) -> None:
         """Initialize the WebSocket client.
 
         Args:
@@ -41,11 +42,11 @@ class WSClient:
         self.loop = loop
         self.secret = secret
         self.ws = SharableWebsocket(ws_url, loop, retry_on_connection_error)
-        self.notification_listeners = []
-        self.running_command = dict()
+        self.notification_listeners: list[Callable] = []
+        self.running_command: dict[str, Command] = {}
         self.is_websocket_listener_started = False
 
-    def on_download_state_updated(self, listener):
+    def on_download_state_updated(self, listener: Callable) -> None:
         """Register a listener for download state update notifications.
 
         Args:
