@@ -2,23 +2,52 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up aria2",
-        "description": "Configure your aria2 server connection",
+        "title": "Aria2 configuration",
         "data": {
+          "port": "Port (optional)",
           "host": "Host",
-          "port": "Port",
-          "access_token": "Access Token",
-          "secure_connection": "Secure Connection (WSS)"
+          "access_token": "Access token (optional)",
+          "secure_connection": "Enable TLS/SSL encryption"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to aria2 server",
-      "invalid_auth": "Invalid authentication",
-      "unknown": "Unexpected error"
+      "connexion": "Can not contact your aria2 server. Verify your SSL configuration, the host and the port.",
+      "unknown": "Unknow error occured contacting your aria2 server. check server logs for more details.",
+      "json": "We can contact your server, but it respond with a malformed response. Check that your server configuration is OK. Check the used protocol https (secured connection) or http (unsecured connection)",
+      "aria_unknown": "Aria server respond with an unmanaged error. check server logs for more details.",
+      "aria_unauthorized": "Provided token is rejected by aria server.",
+      "invalid_url": "The provided host/port are invalid. host should look like http://host.com or https://host.com. Port sould be a number."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Choose the configuration to update",
+        "description": "Option documentation can be found [here](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
+        "data": {
+          "option_to_update": "The option to update"
+        }
+      },
+      "set_option": {
+        "title": "Update the option",
+        "data": {
+          "option_value": "option value"
+        }
+      },
+      "config_updated": {
+        "title": "Configuration updated",
+        "description": "The configuration has been updated.",
+        "data": {
+          "continue": "Continue to configure another option"
+        }
+      }
+    },
+    "error": {
+      "invalid_value": "Invalid value for this configuration."
     },
     "abort": {
-      "already_configured": "This aria2 server is already configured"
+      "config_successfuly_updated": "ㅤ \n ㅤ \n Configuration successfuly updated."
     }
   },
   "entity": {
