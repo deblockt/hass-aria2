@@ -1,0 +1,117 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up aria2",
+        "description": "Configure your aria2 server connection",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "access_token": "Access Token",
+          "secure_connection": "Secure Connection (WSS)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to aria2 server",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This aria2 server is already configured"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "download_speed": {
+        "name": "Download speed"
+      },
+      "upload_speed": {
+        "name": "Upload speed"
+      },
+      "number_of_active_download": {
+        "name": "Number of active downloads"
+      },
+      "number_of_waiting_download": {
+        "name": "Number of waiting downloads"
+      },
+      "number_of_stopped_download": {
+        "name": "Number of stopped downloads"
+      },
+      "active_gids": {
+        "name": "Active GIDs"
+      },
+      "waiting_gids": {
+        "name": "Waiting GIDs"
+      }
+    }
+  },
+  "services": {
+    "start_download": {
+      "name": "Start download",
+      "description": "Add a new download to aria2",
+      "fields": {
+        "url": {
+          "name": "URL",
+          "description": "URL or torrent file path to download"
+        },
+        "server_entry_id": {
+          "name": "Server Entry ID",
+          "description": "The entry ID of the aria2 server"
+        }
+      }
+    },
+    "remove_download": {
+      "name": "Remove download",
+      "description": "Remove a download from aria2",
+      "fields": {
+        "gid": {
+          "name": "GID",
+          "description": "The GID of the download to remove"
+        },
+        "server_entry_id": {
+          "name": "Server Entry ID",
+          "description": "The entry ID of the aria2 server"
+        }
+      }
+    },
+    "pause_download": {
+      "name": "Pause download",
+      "description": "Pause a download in aria2",
+      "fields": {
+        "gid": {
+          "name": "GID",
+          "description": "The GID of the download to pause"
+        },
+        "server_entry_id": {
+          "name": "Server Entry ID",
+          "description": "The entry ID of the aria2 server"
+        }
+      }
+    },
+    "resume_download": {
+      "name": "Resume download",
+      "description": "Resume a paused download in aria2",
+      "fields": {
+        "gid": {
+          "name": "GID",
+          "description": "The GID of the download to resume"
+        },
+        "server_entry_id": {
+          "name": "Server Entry ID",
+          "description": "The entry ID of the aria2 server"
+        }
+      }
+    },
+    "refresh_downloads": {
+      "name": "Refresh downloads",
+      "description": "Refresh the download list from aria2",
+      "fields": {
+        "server_entry_id": {
+          "name": "Server Entry ID",
+          "description": "The entry ID of the aria2 server"
+        }
+      }
+    }
+  }
+}

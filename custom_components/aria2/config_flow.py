@@ -1,23 +1,22 @@
 import logging
 import asyncio
 from typing import Any
+import socket
 
-from custom_components.aria2.aria2_client import WSClient
-from custom_components.aria2.aria2_commands import (
+import voluptuous as vol
+import websockets
+
+from homeassistant.helpers.selector import selector
+from homeassistant import config_entries
+from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
+
+from .aria2_client import WSClient
+from .aria2_commands import (
     ChangeGlobalOptions,
     GetGlobalOption,
     AriaError,
 )
-
-from homeassistant.helpers.selector import selector
-from homeassistant import config_entries
-from .const import CONF_SECURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
-
-import voluptuous as vol
-
-from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN
-import socket
-import websockets
+from .const import CONF_SECURE_CONNECTION, DOMAIN, CONF_PORT, build_ws_url
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +55,7 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
             ws_client = WSClient(
-                ws_url=ws_url(host, port, secure_socket),
+                ws_url=build_ws_url(host, port, secure_socket),
                 secret=secret,
                 loop=self.hass.loop,
                 retry_on_connection_error=False,
