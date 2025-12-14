@@ -13,11 +13,11 @@
     },
     "error": {
       "connexion": "Can not contact your aria2 server. Verify your SSL configuration, the host and the port.",
-      "unknown": "Unknow error occured contacting your aria2 server. check server logs for more details.",
-      "json": "We can contact your server, but it respond with a malformed response. Check that your server configuration is OK. Check the used protocol https (secured connection) or http (unsecured connection)",
-      "aria_unknown": "Aria server respond with an unmanaged error. check server logs for more details.",
+      "unknown": "Unknown error occurred contacting your aria2 server. check server logs for more details.",
+      "json": "We can contact your server, but it responds with a malformed response. Check that your server configuration is OK. Check the used protocol https (secured connection) or http (unsecured connection)",
+      "aria_unknown": "Aria server responds with an unmanaged error. check server logs for more details.",
       "aria_unauthorized": "Provided token is rejected by aria server.",
-      "invalid_url": "The provided host/port are invalid. host should look like http://host.com or https://host.com. Port sould be a number."
+      "invalid_url": "The provided host/port are invalid. host should look like http://host.com or https://host.com. Port should be a number."
     }
   },
   "options": {
@@ -47,7 +47,7 @@
       "invalid_value": "Invalid value for this configuration."
     },
     "abort": {
-      "config_successfuly_updated": "ㅤ \n ㅤ \n Configuration successfuly updated."
+      "config_successfuly_updated": "ㅤ \n ㅤ \n Configuration successfully updated."
     }
   },
   "entity": {
