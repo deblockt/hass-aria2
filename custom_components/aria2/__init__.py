@@ -185,7 +185,7 @@ def register_services(hass):
         """Handle the service call."""
         url = call.data.get("url")
         entry_id = call.data.get("server_entry_id")
-        if url.startswith("http"):
+        if url.startswith(("http://", "https://", "ftp://", "magnet:")):
             await hass.data[DOMAIN][entry_id]["ws_client"].call(AddUri([url]))
         else:
             await hass.data[DOMAIN][entry_id]["ws_client"].call(AddTorrent(url))
