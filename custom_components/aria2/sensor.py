@@ -5,7 +5,7 @@ from datetime import timedelta
 import logging
 from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import (
-    DownoladKeys,
+    DownloadKeys,
     TellActive,
     TellStopped,
     TellWaiting,
@@ -18,15 +18,20 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
-import async_timeout
 
-from .const import DOMAIN
+from .const import DOMAIN, TIMEOUT_SECONDS, COORDINATOR_FAST_UPDATE_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up the aria2."""
+    """Set up aria2 sensor platform.
+
+    Args:
+        hass: Home Assistant instance
+        config_entry: ConfigEntry with aria2 server configuration
+        async_add_entities: Callback to add sensor entities
+    """
     _LOGGER.debug("Adding aria2 to Home Assistant")
 
     ws_client: WSClient = hass.data[DOMAIN][config_entry.entry_id]["ws_client"]
@@ -34,7 +39,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     async def async_state_update_data():
         """Fetch aria 2 stats data from API."""
-        async with async_timeout.timeout(10):
+        async with asyncio.timeout(TIMEOUT_SECONDS):
             return await ws_client.call(GetGlobalStat())
 
     state_coordinator = DataUpdateCoordinator(
@@ -42,10 +47,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         _LOGGER,
         name="sensor",
         update_method=async_state_update_data,
-        update_interval=timedelta(seconds=3),
+        update_interval=timedelta(seconds=COORDINATOR_FAST_UPDATE_SECONDS),
     )
 
-    aria_name = "aria " + hass.data[DOMAIN][config_entry.entry_id][CONF_HOST]
+    aria_name = f"aria {hass.data[DOMAIN][config_entry.entry_id][CONF_HOST]}"
     async_add_entities(
         [
             Aria2Sensor(
@@ -108,7 +113,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class Aria2StateListSensor(SensorEntity):
-    """A base class for state gid list sensor."""
+    """Sensor for aria2 download GID lists by state.
+
+    Tracks downloads in a specific state (active, waiting) and
+    provides their GIDs as a newline-separated list.
+    """
 
     def __init__(
         self,
@@ -177,11 +186,15 @@ class Aria2StateListSensor(SensorEntity):
             "active": TellActive,
             "waiting": TellWaiting
         }
-        downloads = await self._ws_client.call(state_to_command.get(self._state)(keys=[DownoladKeys.GID, DownoladKeys.STATUS]))
+        downloads = await self._ws_client.call(state_to_command.get(self._state)(keys=[DownloadKeys.GID, DownloadKeys.STATUS]))
         self._gid_list = "\n".join(d.gid for d in downloads if d.status == self._state)
         
 class Aria2Sensor(SensorEntity):
-    """A base class for all aria2 sensors."""
+    """Base sensor for aria2 statistics.
+
+    Generic sensor that displays aria2 statistics like download speed,
+    upload speed, and download counts.
+    """
 
     def __init__(
         self,

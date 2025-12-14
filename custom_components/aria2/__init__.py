@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 import logging
 from typing import List
@@ -7,7 +8,7 @@ from custom_components.aria2.aria2_client import WSClient
 from custom_components.aria2.aria2_commands import (
     AddUri,
     AddTorrent,
-    DownoladKeys,
+    DownloadKeys,
     MultiCall,
     Pause,
     Remove,
@@ -18,7 +19,15 @@ from custom_components.aria2.aria2_commands import (
     Unpause,
 )
 
-from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
+from .const import (
+    CONF_SECURE_CONNECTION,
+    DOMAIN,
+    CONF_PORT,
+    ws_url,
+    COORDINATOR_FAST_UPDATE_SECONDS,
+    COORDINATOR_SLOW_UPDATE_SECONDS,
+    TIMEOUT_SECONDS,
+)
 from homeassistant.const import CONF_HOST, CONF_ACCESS_TOKEN, Platform
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -27,28 +36,35 @@ from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers import config_validation as cv
 
 import aria2p
-import async_timeout
 
 _LOGGER = logging.getLogger(__name__)
 
 DOWNLOAD_DUMP_KEYS = [
-    DownoladKeys.GID,
-    DownoladKeys.FILES,
-    DownoladKeys.STATUS,
-    DownoladKeys.TOTAL_LENGTH,
-    DownoladKeys.COMPLETED_LENGTH,
-    DownoladKeys.DOWNLOAD_SPEED,
-    DownoladKeys.DIR,
-    DownoladKeys.BITTORENT,
-    DownoladKeys.SEEDER,
-    DownoladKeys.UPLOAD_SPEED,
-    DownoladKeys.UPLOADED_LENGTH,
-    DownoladKeys.ERROR_CODE,
-    DownoladKeys.ERROR_MESSAGE
+    DownloadKeys.GID,
+    DownloadKeys.FILES,
+    DownloadKeys.STATUS,
+    DownloadKeys.TOTAL_LENGTH,
+    DownloadKeys.COMPLETED_LENGTH,
+    DownloadKeys.DOWNLOAD_SPEED,
+    DownloadKeys.DIR,
+    DownloadKeys.BITTORRENT,
+    DownloadKeys.SEEDER,
+    DownloadKeys.UPLOAD_SPEED,
+    DownloadKeys.UPLOADED_LENGTH,
+    DownloadKeys.ERROR_CODE,
+    DownloadKeys.ERROR_MESSAGE
 ]
 
 
 def dump_files(files: list[aria2p.File]):
+    """Convert aria2p File objects to dictionaries.
+
+    Args:
+        files: List of aria2p.File objects
+
+    Returns:
+        List of dictionaries with file information
+    """
     return [
         {
             "path": f.path,
@@ -61,6 +77,14 @@ def dump_files(files: list[aria2p.File]):
 
 
 def dump(download: aria2p.Download):
+    """Convert an aria2p Download object to a dictionary.
+
+    Args:
+        download: aria2p.Download object
+
+    Returns:
+        Dictionary with download information
+    """
     data = {
         "name": download.name,
         "gid": download.gid,
@@ -87,15 +111,23 @@ def dump(download: aria2p.Download):
 
 
 async def async_setup_entry(hass, entry):
-    """a aria sensor"""
+    """Set up aria2 integration from a config entry.
+
+    Args:
+        hass: Home Assistant instance
+        entry: ConfigEntry with aria2 server configuration
+
+    Returns:
+        True if setup was successful
+    """
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = dict(entry.data)
 
     server_url = ws_url(
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
-        entry.data[CONF_SERCURE_CONNECTION]
-        if CONF_SERCURE_CONNECTION in entry.data
+        entry.data[CONF_SECURE_CONNECTION]
+        if CONF_SECURE_CONNECTION in entry.data
         else False,
     )
     ws_client = WSClient(
@@ -149,7 +181,41 @@ async def async_setup_entry(hass, entry):
     return True
 
 
+async def async_unload_entry(hass, entry):
+    """Unload a config entry.
+
+    Args:
+        hass: Home Assistant instance
+        entry: ConfigEntry being unloaded
+
+    Returns:
+        True if unload was successful
+    """
+    # Close the WebSocket client
+    if entry.entry_id in hass.data.get(DOMAIN, {}):
+        ws_client = hass.data[DOMAIN][entry.entry_id].get("ws_client")
+        if ws_client:
+            # Stop listening for notifications
+            ws = await ws_client.ws.get()
+            if ws:
+                await ws.close()
+
+    # Unload platforms
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, [Platform.SENSOR])
+
+    # Remove data
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+
+    return unload_ok
+
+
 def register_services(hass):
+    """Register aria2 services in Home Assistant.
+
+    Args:
+        hass: Home Assistant instance
+    """
     def entry_exists(hass):
         """Return a voluptuous validator that checks the entry_id exists in hass.data[DOMAIN]."""
         def validator(value):
@@ -221,8 +287,17 @@ def register_services(hass):
 
 
 def init_download_list_update_coordinator(hass, ws_client):
+    """Initialize the download list update coordinator.
+
+    Args:
+        hass: Home Assistant instance
+        ws_client: WebSocket client for aria2
+
+    Returns:
+        DataUpdateCoordinator instance
+    """
     async def get_downloads() -> List[aria2p.Download]:
-        async with async_timeout.timeout(10):
+        async with asyncio.timeout(TIMEOUT_SECONDS):
             [active, waiting, stopped] = await ws_client.call(
                 MultiCall(
                     [
@@ -237,11 +312,11 @@ def init_download_list_update_coordinator(hass, ws_client):
 
             active_downloads = [d for d in downloads if d.status == "active"]
             if len(active_downloads) > 0:
-                _LOGGER.debug("update the coordinator to refresh each 3 seconds")
-                coordinator.update_interval = timedelta(seconds=3)
+                _LOGGER.debug("update the coordinator to refresh each %s seconds", COORDINATOR_FAST_UPDATE_SECONDS)
+                coordinator.update_interval = timedelta(seconds=COORDINATOR_FAST_UPDATE_SECONDS)
             else:
-                _LOGGER.debug("update the coordinator to refresh each 30 seconds")
-                coordinator.update_interval = timedelta(seconds=30)
+                _LOGGER.debug("update the coordinator to refresh each %s seconds", COORDINATOR_SLOW_UPDATE_SECONDS)
+                coordinator.update_interval = timedelta(seconds=COORDINATOR_SLOW_UPDATE_SECONDS)
 
             return downloads
 
@@ -250,6 +325,6 @@ def init_download_list_update_coordinator(hass, ws_client):
         _LOGGER,
         name="download_list",
         update_method=get_downloads,
-        update_interval=timedelta(seconds=3),
+        update_interval=timedelta(seconds=COORDINATOR_FAST_UPDATE_SECONDS),
     )
     return coordinator

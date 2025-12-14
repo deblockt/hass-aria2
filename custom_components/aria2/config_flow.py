@@ -11,7 +11,7 @@ from custom_components.aria2.aria2_commands import (
 
 from homeassistant.helpers.selector import selector
 from homeassistant import config_entries
-from .const import CONF_SERCURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
+from .const import CONF_SECURE_CONNECTION, DOMAIN, CONF_PORT, ws_url
 
 import voluptuous as vol
 
@@ -23,9 +23,19 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for aria2 integration."""
+
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
+        """Handle the initial step of the config flow.
+
+        Args:
+            user_input: User provided configuration data
+
+        Returns:
+            Config flow result
+        """
         errors = {}
         host = None
         port = None
@@ -40,8 +50,8 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 else None
             )
             secure_socket = (
-                user_input[CONF_SERCURE_CONNECTION]
-                if CONF_SERCURE_CONNECTION in user_input
+                user_input[CONF_SECURE_CONNECTION]
+                if CONF_SECURE_CONNECTION in user_input
                 else False
             )
 
@@ -56,12 +66,12 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await ws_client.call(GetGlobalOption())
 
                 return self.async_create_entry(
-                    title="aria " + host + ":" + str(port),
+                    title=f"aria {host}:{port}",
                     data={
                         CONF_HOST: host,
                         CONF_PORT: port,
                         CONF_ACCESS_TOKEN: secret,
-                        CONF_SERCURE_CONNECTION: secure_socket,
+                        CONF_SECURE_CONNECTION: secure_socket,
                     },
                 )
             except (
@@ -78,14 +88,14 @@ class Aria2ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except AriaError:
                 errors["base"] = "aria_unauthorized"
             except:
-                _LOGGER.exception("unknow error")
+                _LOGGER.exception("unknown error")
                 errors["base"] = "unknown"
 
         schema = {
             vol.Required(CONF_HOST, default=host or vol.UNDEFINED): str,
             vol.Optional(CONF_PORT, default=port or vol.UNDEFINED): int,
             vol.Optional(CONF_ACCESS_TOKEN, default=secret or vol.UNDEFINED): str,
-            vol.Optional(CONF_SERCURE_CONNECTION, default=secure_socket or False): bool,
+            vol.Optional(CONF_SECURE_CONNECTION, default=secure_socket or False): bool,
         }
 
         return self.async_show_form(
@@ -296,6 +306,11 @@ GLOBAL_OPTIONS = {
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow for aria2 integration.
+
+    Allows users to modify aria2 global options through the UI.
+    """
+
     def __init__(self) -> None:
         """Initialize options flow."""
         self.config_name = None
