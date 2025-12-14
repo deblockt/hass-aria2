@@ -157,7 +157,7 @@ async def async_setup_entry(hass, entry) -> bool:
             "download_list_updated",
             {
                 "server_entry_id": entry.entry_id,
-                "list": [dump(d) for d in download_list_coordinator.data],
+                "list": [dump(d) for d in download_list_coordinator.data] if download_list_coordinator.data else [],
             },
         )
     )
@@ -196,8 +196,14 @@ async def async_unload_entry(hass, entry) -> bool:
     Returns:
         True if unload was successful
     """
-    # Close the WebSocket client
+    # Stop the coordinator first
     if entry.entry_id in hass.data.get(DOMAIN, {}):
+        coordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
+        if coordinator:
+            # Stop the coordinator from updating
+            await coordinator.async_shutdown()
+
+        # Close the WebSocket client
         ws_client = hass.data[DOMAIN][entry.entry_id].get("ws_client")
         if ws_client:
             # Stop listening for notifications
