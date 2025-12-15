@@ -1,4 +1,4 @@
-[![GitHub release](https://img.shields.io/github/release/deblockt/hass-aria2)](https://github.com/deblockt/aria2-card/releases/hass-aria2)
+[![GitHub release](https://img.shields.io/github/release/deblockt/hass-aria2)](https://github.com/deblockt/hass-aria2/releases/latest)
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 
 # Aria2 integration on home assistant
