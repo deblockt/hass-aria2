@@ -24,7 +24,7 @@
     "step": {
       "init": {
         "title": "Choix de l'option à modifier",
-        "description": "La documentation sur les options est disponible [ici](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
+        "description": "La documentation sur les options est disponible [ici]({url})",
         "data": {
           "option_to_update": "L'option à modifier"
         }
@@ -47,7 +47,7 @@
       "invalid_value": "La valeur entrée est invalide."
     },
     "abort": {
-      "config_successfuly_updated": "ㅤ \n ㅤ \n La configuration a correctement été mise à jour."
+      "config_successfuly_updated": "La configuration a correctement été mise à jour."
     }
   },
   "entity": {
