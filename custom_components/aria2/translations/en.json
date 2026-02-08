@@ -17,14 +17,14 @@
       "json": "We can contact your server, but it responds with a malformed response. Check that your server configuration is OK. Check the used protocol https (secured connection) or http (unsecured connection)",
       "aria_unknown": "Aria server responds with an unmanaged error. check server logs for more details.",
       "aria_unauthorized": "Provided token is rejected by aria server.",
-      "invalid_url": "The provided host/port are invalid. host should look like http://host.com or https://host.com. Port should be a number."
+      "invalid_url": "The provided host/port are invalid. Host should start with http:// or https:// followed by a hostname. Port should be a number."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Choose the configuration to update",
-        "description": "Option documentation can be found [here](https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption)",
+        "description": "Option documentation can be found [here]({url})",
         "data": {
           "option_to_update": "The option to update"
         }
@@ -47,7 +47,7 @@
       "invalid_value": "Invalid value for this configuration."
     },
     "abort": {
-      "config_successfuly_updated": "ㅤ \n ㅤ \n Configuration successfully updated."
+      "config_successfuly_updated": "Configuration successfully updated."
     }
   },
   "entity": {

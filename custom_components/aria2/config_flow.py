@@ -373,4 +373,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ): selector({"select": {"options": option_list}})
                 }
             ),
+            description_placeholders={
+                "url": "https://aria2.github.io/manual/en/html/aria2c.html#aria2.changeGlobalOption"
+            },
         )
